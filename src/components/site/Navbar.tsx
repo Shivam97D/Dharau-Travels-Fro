@@ -45,10 +45,12 @@ export function Navbar({ onLogin }: { onLogin: () => void }) {
           }`}
         >
           <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold">
-            <span className="grid h-9 w-9 place-items-center rounded-full gradient-sunset text-primary-foreground shadow-glow">
-              <Plane className="h-4 w-4 -rotate-45" />
-            </span>
-            <span className="tracking-tight">Dharau</span>
+            <img 
+              src="/Screenshot_2026-05-26_180910-removebg-preview.png" 
+              alt="DHARAVU JOURNEYS" 
+              className="h-9 w-9 object-contain"
+            />
+            <span className="tracking-tight">DHARAVU JOURNEYS</span>
           </Link>
 
           <nav className="hidden items-center gap-1 md:flex">

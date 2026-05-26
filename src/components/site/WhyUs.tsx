@@ -89,7 +89,7 @@ export function WhyUs() {
       <div className="absolute inset-0 -z-10 bg-grain opacity-50" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeader
-          eyebrow="Why Dharau"
+          eyebrow="Why DHARAVU JOURNEYS"
           title={
             <>
               Travel that actually <span className="italic text-gradient-sunset">feels good</span>
@@ -126,8 +126,8 @@ export function WhyUs() {
           })}
         </div>
 
-        {/* Stats */}
-        <div className="mt-16 grid grid-cols-2 gap-4 rounded-3xl glass p-6 shadow-float sm:grid-cols-4 sm:p-8">
+        {/* Stats - Hidden for preview */}
+        {/* <div className="mt-16 grid grid-cols-2 gap-4 rounded-3xl glass p-6 shadow-float sm:grid-cols-4 sm:p-8">
           {stats.map((s) => (
             <div key={s.label} className="text-center">
               <div className="text-3xl font-bold tracking-tight text-gradient-sunset sm:text-5xl">
@@ -138,7 +138,7 @@ export function WhyUs() {
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
       </div>
     </section>
   );

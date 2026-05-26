@@ -33,10 +33,12 @@ export function Footer() {
         <div className="grid gap-12 lg:grid-cols-[1.4fr_2fr_1.4fr]">
           <div>
             <a href="#" className="inline-flex items-center gap-2 font-display text-xl font-bold">
-              <span className="grid h-10 w-10 place-items-center rounded-full gradient-sunset text-primary-foreground shadow-glow">
-                <Plane className="h-4 w-4 -rotate-45" />
-              </span>
-              Dharau
+              <img 
+                src="/Screenshot_2026-05-26_180910-removebg-preview.png" 
+                alt="DHARAVU JOURNEYS" 
+                className="h-10 w-10 object-contain"
+              />
+              DHARAVU JOURNEYS
             </a>
             <p className="mt-4 max-w-xs text-sm text-muted-foreground">
               Curated journeys for the wildly curious. Designed by humans, powered by wonder.
@@ -86,7 +88,7 @@ export function Footer() {
               <Mail className="ml-3 h-4 w-4 text-muted-foreground" />
               <input
                 type="email"
-                placeholder="you@wander.com"
+                placeholder="dharavujourney@gmail.com"
                 className="flex-1 bg-transparent px-2 py-2 text-sm outline-none placeholder:text-muted-foreground"
               />
               <button className="rounded-full gradient-sunset px-4 py-2 text-xs font-semibold text-primary-foreground shadow-glow transition hover:scale-105">
@@ -97,7 +99,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row">
-          <div>© {new Date().getFullYear()} Dharau Travel Co. Made with sunshine.</div>
+          <div>© {new Date().getFullYear()} DHARAVU JOURNEYS Travel Co. Made with sunshine.</div>
           <div className="flex gap-5">
             <a href="#" className="hover:text-foreground">
               Privacy

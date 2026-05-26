@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (response.success && response.data) {
       const userData = response.data as User;
       setUser(userData);
-      toast.success(`Welcome to Dharau, ${userData.name?.split(" ")[0]}! 🌍`);
+      toast.success(`Welcome to DHARAVU JOURNEYS, ${userData.name?.split(" ")[0]}! 🌍`);
     }
   };
 

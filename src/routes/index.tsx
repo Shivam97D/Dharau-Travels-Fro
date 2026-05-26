@@ -2,11 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Navbar } from "@/components/site/Navbar";
 import { Hero } from "@/components/site/Hero";
-import { Destinations } from "@/components/site/Destinations";
+// import { Destinations } from "@/components/site/Destinations";
 import { FeaturedTrips } from "@/components/site/FeaturedTrips";
 import { WhyUs } from "@/components/site/WhyUs";
 import { Categories } from "@/components/site/Categories";
-import { Testimonials } from "@/components/site/Testimonials";
+// import { Testimonials } from "@/components/site/Testimonials";
 import { Gallery } from "@/components/site/Gallery";
 import { PlannerCTA } from "@/components/site/PlannerCTA";
 import { Footer } from "@/components/site/Footer";
@@ -28,11 +28,11 @@ function Index() {
       <Navbar onLogin={() => setAuthOpen(true)} />
       <main>
         <Hero />
-        <Destinations />
+        {/* <Destinations /> */}
         <FeaturedTrips />
         <WhyUs />
         <Categories />
-        <Testimonials />
+        {/* <Testimonials /> */}
         <Gallery />
         <PlannerCTA />
       </main>

@@ -9,7 +9,9 @@ export function FloatingButtons() {
     <>
       {/* WhatsApp */}
       <motion.a
-        href="#"
+        href="https://wa.me/919579265920"
+        target="_blank"
+        rel="noopener noreferrer"
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 1.5, type: "spring" }}
