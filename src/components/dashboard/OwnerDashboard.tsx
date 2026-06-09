@@ -79,7 +79,7 @@ function StatCard({ title, value, change, icon, gradient }: StatCardProps) {
   );
 }
 
-export function OwnerDashboard() {
+export function OwnerDashboard({ onNavigate }: { onNavigate?: (tab: string) => void }) {
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "1y">("30d");
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -356,7 +356,7 @@ export function OwnerDashboard() {
               <p className="text-2xl font-bold">{overview?.pendingInquiries ?? 0}</p>
             </div>
           </div>
-          <button className="w-full rounded-xl bg-white/10 py-2 text-sm font-medium transition hover:bg-white/20">
+          <button onClick={() => onNavigate?.("inquiries")} className="w-full rounded-xl bg-white/10 py-2 text-sm font-medium transition hover:bg-white/20">
             View All
           </button>
         </motion.div>
@@ -376,7 +376,7 @@ export function OwnerDashboard() {
               <p className="text-2xl font-bold">{overview?.pendingReviews ?? 0}</p>
             </div>
           </div>
-          <button className="w-full rounded-xl bg-white/10 py-2 text-sm font-medium transition hover:bg-white/20">
+          <button onClick={() => onNavigate?.("reviews")} className="w-full rounded-xl bg-white/10 py-2 text-sm font-medium transition hover:bg-white/20">
             Moderate
           </button>
         </motion.div>
@@ -396,7 +396,7 @@ export function OwnerDashboard() {
               <p className="text-2xl font-bold">{overview?.upcomingTrips ?? 0}</p>
             </div>
           </div>
-          <button className="w-full rounded-xl bg-white/10 py-2 text-sm font-medium transition hover:bg-white/20">
+          <button onClick={() => onNavigate?.("bookings")} className="w-full rounded-xl bg-white/10 py-2 text-sm font-medium transition hover:bg-white/20">
             Manage
           </button>
         </motion.div>

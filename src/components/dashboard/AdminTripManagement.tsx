@@ -19,6 +19,7 @@ import {
   Save,
   Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import api from "@/lib/api";
 import type { Trip } from "@/lib/types";
 
@@ -37,10 +38,46 @@ interface TripFormData {
   departureDate: string[];
   featured: boolean;
   status: string;
+  images: string[];
   highlights: string[];
   includes: string[];
   excludes: string[];
   tags: string[];
+}
+
+const EMPTY_FORM: TripFormData = {
+  title: "",
+  description: "",
+  destination: "",
+  country: "",
+  category: "adventure",
+  duration: { days: 7, nights: 6 },
+  price: { amount: 0, currency: "INR", originalPrice: undefined, discount: undefined },
+  maxGroupSize: 15,
+  availableSeats: 15,
+  difficulty: "moderate",
+  departureLocation: "",
+  departureDate: [],
+  featured: false,
+  status: "active",
+  images: [],
+  highlights: [],
+  includes: [],
+  excludes: [],
+  tags: [],
+};
+
+// Convert the form's flat string fields into the API/document shape.
+function toTripPayload(f: TripFormData) {
+  return {
+    ...f,
+    images: f.images.filter((u) => u.trim()).map((url, idx) => ({ url: url.trim(), isPrimary: idx === 0 })),
+    highlights: f.highlights.filter((s) => s.trim()),
+    includes: f.includes.filter((s) => s.trim()),
+    excludes: f.excludes.filter((s) => s.trim()),
+    tags: f.tags.filter((s) => s.trim()),
+    departureDate: f.departureDate.filter((d) => d),
+  };
 }
 
 export function AdminTripManagement() {
@@ -52,26 +89,7 @@ export function AdminTripManagement() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
-  const [formData, setFormData] = useState<TripFormData>({
-    title: "",
-    description: "",
-    destination: "",
-    country: "",
-    category: "adventure",
-    duration: { days: 7, nights: 6 },
-    price: { amount: 0, currency: "INR" },
-    maxGroupSize: 15,
-    availableSeats: 15,
-    difficulty: "moderate",
-    departureLocation: "",
-    departureDate: [],
-    featured: false,
-    status: "active",
-    highlights: [],
-    includes: [],
-    excludes: [],
-    tags: [],
-  });
+  const [formData, setFormData] = useState<TripFormData>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -99,14 +117,15 @@ export function AdminTripManagement() {
   const handleCreateTrip = async () => {
     try {
       setSubmitting(true);
-      const response = await api.createTrip(formData);
+      const response = await api.createTrip(toTripPayload(formData));
       if (response.success) {
+        toast.success("Trip created");
         setShowCreateModal(false);
         fetchTrips();
         resetForm();
       }
-    } catch (error) {
-      console.error("Failed to create trip:", error);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to create trip");
     } finally {
       setSubmitting(false);
     }
@@ -116,14 +135,15 @@ export function AdminTripManagement() {
     if (!selectedTrip) return;
     try {
       setSubmitting(true);
-      const response = await api.updateTrip(selectedTrip._id, formData);
+      const response = await api.updateTrip(selectedTrip._id, toTripPayload(formData));
       if (response.success) {
+        toast.success("Trip updated");
         setShowEditModal(false);
         fetchTrips();
         resetForm();
       }
-    } catch (error) {
-      console.error("Failed to update trip:", error);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to update trip");
     } finally {
       setSubmitting(false);
     }
@@ -133,9 +153,10 @@ export function AdminTripManagement() {
     if (!confirm("Are you sure you want to delete this trip?")) return;
     try {
       await api.deleteTrip(id);
+      toast.success("Trip deleted");
       fetchTrips();
-    } catch (error) {
-      console.error("Failed to delete trip:", error);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete trip");
     }
   };
 
@@ -153,9 +174,10 @@ export function AdminTripManagement() {
       availableSeats: trip.availableSeats,
       difficulty: trip.difficulty,
       departureLocation: trip.departureLocation || "",
-      departureDate: trip.departureDate.map((d) => new Date(d).toISOString().split("T")[0]),
+      departureDate: (trip.departureDate || []).map((d) => new Date(d).toISOString().split("T")[0]),
       featured: trip.featured,
       status: trip.status,
+      images: (trip.images || []).map((i) => i.url),
       highlights: trip.highlights || [],
       includes: trip.includes || [],
       excludes: trip.excludes || [],
@@ -165,26 +187,7 @@ export function AdminTripManagement() {
   };
 
   const resetForm = () => {
-    setFormData({
-      title: "",
-      description: "",
-      destination: "",
-      country: "",
-      category: "adventure",
-      duration: { days: 7, nights: 6 },
-      price: { amount: 0, currency: "INR" },
-      maxGroupSize: 15,
-      availableSeats: 15,
-      difficulty: "moderate",
-      departureLocation: "",
-      departureDate: [],
-      featured: false,
-      status: "active",
-      highlights: [],
-      includes: [],
-      excludes: [],
-      tags: [],
-    });
+    setFormData(EMPTY_FORM);
     setSelectedTrip(null);
   };
 
@@ -512,6 +515,98 @@ export function AdminTripManagement() {
                   </select>
                 </div>
 
+                <div>
+                  <label className="mb-2 block text-sm font-medium">Days</label>
+                  <input
+                    type="number"
+                    value={formData.duration.days}
+                    onChange={(e) => setFormData({ ...formData, duration: { ...formData.duration, days: Number(e.target.value) } })}
+                    className="w-full rounded-2xl bg-white/5 px-4 py-2 outline-none transition focus:bg-white/10"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium">Nights</label>
+                  <input
+                    type="number"
+                    value={formData.duration.nights}
+                    onChange={(e) => setFormData({ ...formData, duration: { ...formData.duration, nights: Number(e.target.value) } })}
+                    className="w-full rounded-2xl bg-white/5 px-4 py-2 outline-none transition focus:bg-white/10"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium">Original Price (₹, optional)</label>
+                  <input
+                    type="number"
+                    value={formData.price.originalPrice ?? ""}
+                    onChange={(e) => setFormData({ ...formData, price: { ...formData.price, originalPrice: e.target.value ? Number(e.target.value) : undefined } })}
+                    className="w-full rounded-2xl bg-white/5 px-4 py-2 outline-none transition focus:bg-white/10"
+                    placeholder="99999"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium">Discount (₹, optional)</label>
+                  <input
+                    type="number"
+                    value={formData.price.discount ?? ""}
+                    onChange={(e) => setFormData({ ...formData, price: { ...formData.price, discount: e.target.value ? Number(e.target.value) : undefined } })}
+                    className="w-full rounded-2xl bg-white/5 px-4 py-2 outline-none transition focus:bg-white/10"
+                    placeholder="10000"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium">Difficulty</label>
+                  <select
+                    value={formData.difficulty}
+                    onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
+                    className="w-full rounded-2xl bg-white/5 px-4 py-2 outline-none transition focus:bg-white/10"
+                  >
+                    <option value="easy">Easy</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="challenging">Challenging</option>
+                    <option value="extreme">Extreme</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium">Departure Location</label>
+                  <input
+                    type="text"
+                    value={formData.departureLocation}
+                    onChange={(e) => setFormData({ ...formData, departureLocation: e.target.value })}
+                    className="w-full rounded-2xl bg-white/5 px-4 py-2 outline-none transition focus:bg-white/10"
+                    placeholder="e.g., Mumbai Airport"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="mb-2 block text-sm font-medium">Departure Dates (comma-separated, YYYY-MM-DD)</label>
+                  <input
+                    type="text"
+                    value={formData.departureDate.join(", ")}
+                    onChange={(e) => setFormData({ ...formData, departureDate: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+                    className="w-full rounded-2xl bg-white/5 px-4 py-2 outline-none transition focus:bg-white/10"
+                    placeholder="2026-08-15, 2026-09-20"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="mb-2 block text-sm font-medium">Image URLs (one per line)</label>
+                  <textarea
+                    value={formData.images.join("\n")}
+                    onChange={(e) => setFormData({ ...formData, images: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean) })}
+                    rows={3}
+                    className="w-full rounded-2xl bg-white/5 px-4 py-2 font-mono text-xs outline-none transition focus:bg-white/10"
+                    placeholder="https://images.unsplash.com/photo-...&#10;https://..."
+                  />
+                  {formData.images[0] && (
+                    <img src={formData.images[0]} alt="preview" className="mt-2 h-20 w-32 rounded-xl object-cover" onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")} />
+                  )}
+                </div>
+
                 <div className="md:col-span-2">
                   <label className="mb-2 block text-sm font-medium">Description</label>
                   <textarea
@@ -522,6 +617,23 @@ export function AdminTripManagement() {
                     placeholder="Describe the trip experience..."
                   />
                 </div>
+
+                {([
+                  ["highlights", "Highlights (comma-separated)"],
+                  ["includes", "Included (comma-separated)"],
+                  ["excludes", "Not included (comma-separated)"],
+                  ["tags", "Tags (comma-separated)"],
+                ] as const).map(([key, label]) => (
+                  <div key={key} className="md:col-span-2">
+                    <label className="mb-2 block text-sm font-medium">{label}</label>
+                    <input
+                      type="text"
+                      value={(formData[key] as string[]).join(", ")}
+                      onChange={(e) => setFormData({ ...formData, [key]: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+                      className="w-full rounded-2xl bg-white/5 px-4 py-2 outline-none transition focus:bg-white/10"
+                    />
+                  </div>
+                ))}
 
                 <div className="flex items-center gap-3">
                   <input
