@@ -3,14 +3,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Plane, Moon, Sun, LogOut, Shield } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
+import { useAuthModal } from "@/lib/auth-modal";
 
 const links = ["Destinations", "Trips", "Categories", "Gallery", "Contact"];
 
-export function Navbar({ onLogin }: { onLogin: () => void }) {
+export function Navbar({ onLogin }: { onLogin?: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [dark, setDark] = useState(false);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { openAuth } = useAuthModal();
+  const handleSignIn = onLogin ?? openAuth;
 
   const roleEmoji = user?.role === "owner" ? "🎩" : user?.role === "admin" ? "💻" : "👤";
 
@@ -109,7 +112,7 @@ export function Navbar({ onLogin }: { onLogin: () => void }) {
             ) : (
               <>
                 <button
-                  onClick={onLogin}
+                  onClick={handleSignIn}
                   className="hidden rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition hover:text-foreground sm:block"
                 >
                   Sign in
@@ -192,7 +195,7 @@ export function Navbar({ onLogin }: { onLogin: () => void }) {
                   <button
                     onClick={() => {
                       setOpen(false);
-                      onLogin();
+                      handleSignIn();
                     }}
                     className="mt-2 rounded-2xl gradient-sunset px-4 py-3 text-sm font-semibold text-primary-foreground"
                   >

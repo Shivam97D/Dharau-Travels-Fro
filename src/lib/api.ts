@@ -246,6 +246,31 @@ class ApiClient {
   async updateInquiryStatus(id: string, status: string) {
     return this.put(`/admin/inquiries/${id}/status`, { status });
   }
+
+  async respondToInquiry(id: string, text: string) {
+    return this.post(`/admin/inquiries/${id}/respond`, { text });
+  }
+
+  async updateBookingStatus(id: string, status: string) {
+    return this.put(`/bookings/${id}/status`, { status });
+  }
+
+  async updatePaymentStatus(id: string, payload: { status: string; method?: string; transactionId?: string }) {
+    return this.put(`/bookings/${id}/payment`, payload);
+  }
+
+  async markReviewHelpful(id: string) {
+    return this.post(`/reviews/${id}/helpful`);
+  }
+
+  async subscribeNewsletter(email: string) {
+    return this.post("/newsletter/subscribe", { email });
+  }
+
+  async getSubscribers(params?: Record<string, any>) {
+    const queryString = params ? "?" + new URLSearchParams(params).toString() : "";
+    return this.get(`/newsletter${queryString}`);
+  }
 }
 
 export const api = new ApiClient(API_URL);

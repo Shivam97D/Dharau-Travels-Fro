@@ -25,7 +25,7 @@ function Profile() {
 
   return (
     <div className="relative min-h-screen bg-background">
-      <Navbar onLogin={() => {}} />
+      <Navbar />
       <main className="pb-12 pt-24">
         <ProfilePage />
       </main>

@@ -1,109 +1,210 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Plane, Calendar, Heart, Settings, LogOut } from "lucide-react";
+import {
+  Plane,
+  Calendar,
+  Heart,
+  MapPin,
+  Loader2,
+  ArrowRight,
+  Clock,
+  XCircle,
+  Settings,
+} from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { toast } from "sonner";
+import api from "@/lib/api";
+import type { Booking, Trip } from "@/lib/types";
+
+const formatINR = (n: number) => `₹${(n ?? 0).toLocaleString("en-IN")}`;
+
+const statusStyles: Record<string, string> = {
+  pending: "bg-amber-400/20 text-amber-300",
+  confirmed: "bg-emerald-400/20 text-emerald-300",
+  completed: "bg-sky-400/20 text-sky-300",
+  cancelled: "bg-red-400/20 text-red-300",
+};
 
 export function UserDashboard() {
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [saved, setSaved] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState<string | null>(null);
+
+  const load = async () => {
+    try {
+      setLoading(true);
+      const [bRes, sRes] = await Promise.all([api.getMyBookings(), api.getSavedTrips()]);
+      if (bRes.success) setBookings((bRes.data as Booking[]) ?? []);
+      if (sRes.success) setSaved((sRes.data as Trip[]) ?? []);
+    } catch {
+      /* handled by empty states */
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const handleCancel = async (b: Booking) => {
+    if (!confirm("Cancel this booking request?")) return;
+    setCancelling(b._id);
+    try {
+      await api.cancelBooking(b._id, "Cancelled by user");
+      toast.success("Booking cancelled");
+      setBookings((prev) => prev.map((x) => (x._id === b._id ? { ...x, status: "cancelled" } : x)));
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Could not cancel booking");
+    } finally {
+      setCancelling(null);
+    }
+  };
+
+  const activeBookings = bookings.filter((b) => b.status !== "cancelled");
+
+  const stats = [
+    { label: "Bookings", value: activeBookings.length, icon: <Calendar className="h-6 w-6 text-white" />, gradient: "gradient-aurora" },
+    { label: "Confirmed Trips", value: bookings.filter((b) => b.status === "confirmed").length, icon: <Plane className="h-6 w-6 text-white" />, gradient: "gradient-sunset" },
+    { label: "Saved Trips", value: saved.length, icon: <Heart className="h-6 w-6 text-white" />, gradient: "bg-gradient-to-br from-purple-500 to-pink-500" },
+  ];
+
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-        <h1 className="text-4xl font-bold">My Dashboard</h1>
-        <p className="mt-2 text-muted-foreground">
-          Manage your trips, bookings, and account settings
-        </p>
-      </motion.div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="rounded-3xl glass p-6"
-        >
-          <div className="grid h-12 w-12 place-items-center rounded-2xl gradient-sunset">
-            <Plane className="h-6 w-6 text-white" />
-          </div>
-          <h3 className="mt-4 text-2xl font-bold">0</h3>
-          <p className="text-sm text-muted-foreground">My Trips</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="rounded-3xl glass p-6"
-        >
-          <div className="grid h-12 w-12 place-items-center rounded-2xl gradient-aurora">
-            <Calendar className="h-6 w-6 text-white" />
-          </div>
-          <h3 className="mt-4 text-2xl font-bold">0</h3>
-          <p className="text-sm text-muted-foreground">Bookings</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="rounded-3xl glass p-6"
-        >
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500">
-            <Heart className="h-6 w-6 text-white" />
-          </div>
-          <h3 className="mt-4 text-2xl font-bold">0</h3>
-          <p className="text-sm text-muted-foreground">Saved Trips</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="rounded-3xl glass p-6"
-        >
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500">
-            <Settings className="h-6 w-6 text-white" />
-          </div>
-          <h3 className="mt-4 text-2xl font-bold">Settings</h3>
-          <p className="text-sm text-muted-foreground">Account</p>
-        </motion.div>
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="mt-8 rounded-3xl glass p-6"
-      >
-        <h2 className="mb-4 text-xl font-bold">Quick Actions</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Link
-            to="/"
-            className="flex items-center gap-3 rounded-2xl bg-white/5 p-4 transition hover:bg-white/10"
-          >
-            <Plane className="h-5 w-5" />
-            <span>Browse Trips</span>
-          </Link>
-          <Link
-            to="/"
-            className="flex items-center gap-3 rounded-2xl bg-white/5 p-4 transition hover:bg-white/10"
-          >
-            <Heart className="h-5 w-5" />
-            <span>View Saved Trips</span>
-          </Link>
-          <Link
-            to="/"
-            className="flex items-center gap-3 rounded-2xl bg-white/5 p-4 transition hover:bg-white/10"
-          >
-            <Calendar className="h-5 w-5" />
-            <span>My Bookings</span>
-          </Link>
-          <Link
-            to="/"
-            className="flex items-center gap-3 rounded-2xl bg-white/5 p-4 transition hover:bg-white/10"
-          >
-            <Settings className="h-5 w-5" />
-            <span>Account Settings</span>
-          </Link>
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold">My Dashboard</h1>
+          <p className="mt-2 text-muted-foreground">Manage your trips, bookings, and account</p>
         </div>
+        <Link
+          to="/profile"
+          className="flex items-center gap-2 rounded-full glass px-5 py-2.5 text-sm font-medium transition hover:bg-white/10"
+        >
+          <Settings className="h-4 w-4" /> Account Settings
+        </Link>
       </motion.div>
+
+      {loading ? (
+        <div className="flex h-64 items-center justify-center rounded-3xl glass">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      ) : (
+        <>
+          {/* Stats */}
+          <div className="grid gap-6 sm:grid-cols-3">
+            {stats.map((s, i) => (
+              <motion.div
+                key={s.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className="rounded-3xl glass p-6"
+              >
+                <div className={`grid h-12 w-12 place-items-center rounded-2xl ${s.gradient}`}>{s.icon}</div>
+                <h3 className="mt-4 text-3xl font-bold">{s.value}</h3>
+                <p className="text-sm text-muted-foreground">{s.label}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Bookings */}
+          <div className="mt-8 rounded-3xl glass p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold">My Bookings</h2>
+              <Link to="/" className="flex items-center gap-1 text-sm text-primary hover:underline">
+                Browse trips <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+
+            {bookings.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 py-10 text-center">
+                <Plane className="h-10 w-10 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">No bookings yet.</p>
+                <Link to="/" className="rounded-full gradient-sunset px-5 py-2 text-sm font-semibold text-white shadow-glow">
+                  Explore trips
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {bookings.map((b) => {
+                  const trip = typeof b.trip === "string" ? null : b.trip;
+                  return (
+                    <div key={b._id} className="flex flex-col gap-3 rounded-2xl bg-white/5 p-4 sm:flex-row sm:items-center">
+                      {trip?.images?.[0] && (
+                        <img src={trip.images[0].url} alt={trip.title} className="h-16 w-24 shrink-0 rounded-xl object-cover" />
+                      )}
+                      <div className="flex-1">
+                        <p className="font-semibold">{trip?.title ?? "Trip"}</p>
+                        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                          {trip?.destination && (
+                            <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{trip.destination}</span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {new Date(b.departureDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                          </span>
+                          <span>#{b.bookingId}</span>
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p className="font-bold">{formatINR(b.pricing?.totalAmount)}</p>
+                          <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${statusStyles[b.status] ?? "bg-white/10"}`}>
+                            {b.status}
+                          </span>
+                        </div>
+                        {b.status === "pending" || b.status === "confirmed" ? (
+                          <button
+                            onClick={() => handleCancel(b)}
+                            disabled={cancelling === b._id}
+                            title="Cancel booking"
+                            className="rounded-lg bg-red-500/10 p-2 text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                          >
+                            {cancelling === b._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Saved trips */}
+          <div className="mt-8 rounded-3xl glass p-6">
+            <h2 className="mb-4 text-xl font-bold">Saved Trips</h2>
+            {saved.length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                You haven't saved any trips yet. Tap the heart on a trip to save it here.
+              </p>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {saved.map((t) => (
+                  <Link
+                    key={t._id}
+                    to="/trips/$slug"
+                    params={{ slug: t.slug }}
+                    className="group overflow-hidden rounded-2xl bg-white/5 transition hover:bg-white/10"
+                  >
+                    {t.images?.[0] && (
+                      <img src={t.images[0].url} alt={t.title} className="h-32 w-full object-cover transition group-hover:scale-105" />
+                    )}
+                    <div className="p-4">
+                      <p className="font-semibold">{t.title}</p>
+                      <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3" /> {t.destination}
+                      </p>
+                      <p className="mt-2 font-bold">{formatINR(t.price?.amount)}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

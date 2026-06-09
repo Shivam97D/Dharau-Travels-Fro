@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, ArrowRight } from "lucide-react";
+import { InquiryModal } from "./InquiryModal";
 
 export function PlannerCTA() {
+  const [inquiryOpen, setInquiryOpen] = useState(false);
   return (
     <section id="planner" className="relative py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -38,14 +41,15 @@ export function PlannerCTA() {
                 Tell us your vibe, your dates, and your dream. We'll send back a fully built
                 itinerary you can tweak, approve, and live.
               </p>
-              <motion.a
-                href="#"
+              <motion.button
+                type="button"
+                onClick={() => setInquiryOpen(true)}
                 whileHover={{ scale: 1.04 }}
                 className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-7 py-4 text-sm font-bold text-foreground shadow-glow"
               >
                 Start planning
                 <ArrowRight className="h-4 w-4" />
-              </motion.a>
+              </motion.button>
             </div>
 
             <motion.div
@@ -82,6 +86,8 @@ export function PlannerCTA() {
           </div>
         </div>
       </div>
+
+      <InquiryModal open={inquiryOpen} onClose={() => setInquiryOpen(false)} />
     </section>
   );
 }

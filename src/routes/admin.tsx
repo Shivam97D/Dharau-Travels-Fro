@@ -36,7 +36,7 @@ function AdminPage() {
   if (user.role === "owner" || user.role === "admin") {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar onLogin={() => {}} />
+        <Navbar />
         <div className="mx-auto max-w-screen-2xl px-4 py-8 pt-28 sm:px-6 lg:px-8">
           <div className="mb-8 flex items-center justify-between">
             <div>

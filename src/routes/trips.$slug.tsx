@@ -11,7 +11,7 @@ function TripDetailPage() {
   const { slug } = Route.useParams();
   return (
     <div className="relative min-h-screen bg-background">
-      <Navbar onLogin={() => {}} />
+      <Navbar />
       <main className="pt-20">
         <TripDetail slug={slug} />
       </main>

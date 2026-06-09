@@ -16,9 +16,15 @@ import {
   ArrowLeft,
   IndianRupee,
   Zap,
+  Heart,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { toast } from "sonner";
 import api from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { useAuthModal } from "@/lib/auth-modal";
+import { BookingModal } from "./BookingModal";
+import { TripReviews } from "./TripReviews";
 import type { Trip } from "@/lib/types";
 
 const difficultyColor: Record<string, string> = {
@@ -115,6 +121,40 @@ export function TripDetail({ slug }: { slug: string }) {
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [activeImg, setActiveImg] = useState(0);
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [savingTrip, setSavingTrip] = useState(false);
+
+  const { isAuthenticated, user } = useAuth();
+  const { openAuth } = useAuthModal();
+
+  useEffect(() => {
+    // Reflect whether this trip is already in the user's saved list.
+    if (user?.savedTrips && trip) {
+      const ids = (user.savedTrips as unknown[]).map((t) =>
+        typeof t === "string" ? t : (t as { _id: string })._id,
+      );
+      setSaved(ids.includes(trip._id));
+    }
+  }, [user, trip]);
+
+  const handleToggleSave = async () => {
+    if (!isAuthenticated) {
+      openAuth();
+      return;
+    }
+    if (!trip) return;
+    setSavingTrip(true);
+    try {
+      await api.saveTrip(trip._id);
+      setSaved((s) => !s);
+      toast.success(saved ? "Removed from saved trips" : "Saved to your trips ❤️");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Could not update saved trips");
+    } finally {
+      setSavingTrip(false);
+    }
+  };
 
   useEffect(() => {
     const fetch = async () => {
@@ -340,6 +380,9 @@ export function TripDetail({ slug }: { slug: string }) {
                 ))}
               </div>
             )}
+
+            {/* Reviews */}
+            <TripReviews tripId={trip._id} />
           </div>
 
           {/* ─ Sticky booking card ─ */}
@@ -394,11 +437,21 @@ export function TripDetail({ slug }: { slug: string }) {
               )}
 
               <button
+                onClick={() => setBookingOpen(true)}
                 disabled={trip.status === "soldout" || trip.availableSeats === 0}
                 className="flex w-full items-center justify-center gap-2 rounded-full gradient-sunset py-3 text-sm font-bold text-white shadow-glow transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <IndianRupee className="h-4 w-4" />
                 {trip.status === "soldout" ? "Sold Out" : "Book Now"}
+              </button>
+
+              <button
+                onClick={handleToggleSave}
+                disabled={savingTrip}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 py-2.5 text-sm font-semibold transition hover:bg-white/10 disabled:opacity-50"
+              >
+                <Heart className={`h-4 w-4 ${saved ? "fill-red-500 text-red-500" : ""}`} />
+                {saved ? "Saved" : "Save trip"}
               </button>
 
               <p className="mt-3 text-center text-xs text-muted-foreground">
@@ -433,6 +486,7 @@ export function TripDetail({ slug }: { slug: string }) {
             <p className="text-xl font-bold">{formatINR(trip.price.amount)}</p>
           </div>
           <button
+            onClick={() => setBookingOpen(true)}
             disabled={trip.status === "soldout" || trip.availableSeats === 0}
             className="flex-1 rounded-full gradient-sunset py-3 text-sm font-bold text-white shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
           >
@@ -440,6 +494,8 @@ export function TripDetail({ slug }: { slug: string }) {
           </button>
         </div>
       </div>
+
+      <BookingModal trip={trip} open={bookingOpen} onClose={() => setBookingOpen(false)} />
     </article>
   );
 }

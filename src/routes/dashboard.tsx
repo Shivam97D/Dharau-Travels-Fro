@@ -25,7 +25,7 @@ function Dashboard() {
 
   return (
     <div className="relative min-h-screen bg-background">
-      <Navbar onLogin={() => {}} />
+      <Navbar />
       <main className="pt-24 pb-12">
         <UserDashboard />
       </main>

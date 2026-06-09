@@ -1,4 +1,7 @@
-import { Plane, Instagram, Twitter, Youtube, Facebook, Mail } from "lucide-react";
+import { useState } from "react";
+import { Instagram, Twitter, Youtube, Facebook, Mail, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import api from "@/lib/api";
 
 const sections = [
   { title: "Explore", links: ["Destinations", "Featured trips", "Categories", "Gallery"] },
@@ -9,6 +12,24 @@ const sections = [
 const partners = ["Airbnb", "Hilton", "Emirates", "Qatar", "TripAdvisor", "Lonely Planet"];
 
 export function Footer() {
+  const [email, setEmail] = useState("");
+  const [subscribing, setSubscribing] = useState(false);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setSubscribing(true);
+    try {
+      const res = await api.subscribeNewsletter(email.trim());
+      toast.success(res.message || "Subscribed! 🌍");
+      setEmail("");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Could not subscribe");
+    } finally {
+      setSubscribing(false);
+    }
+  };
+
   return (
     <footer id="contact" className="relative overflow-hidden border-t border-border bg-card">
       <div className="absolute -top-40 left-1/2 h-80 w-[60%] -translate-x-1/2 rounded-full gradient-sunset opacity-15 blur-3xl" />
@@ -82,16 +103,24 @@ export function Footer() {
               One destination, one story, zero spam.
             </p>
             <form
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleSubscribe}
               className="mt-4 flex items-center gap-2 rounded-full bg-white/70 p-1.5"
             >
               <Mail className="ml-3 h-4 w-4 text-muted-foreground" />
               <input
                 type="email"
-                placeholder="dharavujourney@gmail.com"
-                className="flex-1 bg-transparent px-2 py-2 text-sm outline-none placeholder:text-muted-foreground"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@email.com"
+                className="flex-1 bg-transparent px-2 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground"
               />
-              <button className="rounded-full gradient-sunset px-4 py-2 text-xs font-semibold text-primary-foreground shadow-glow transition hover:scale-105">
+              <button
+                type="submit"
+                disabled={subscribing}
+                className="flex items-center gap-1.5 rounded-full gradient-sunset px-4 py-2 text-xs font-semibold text-primary-foreground shadow-glow transition hover:scale-105 disabled:opacity-50"
+              >
+                {subscribing && <Loader2 className="h-3 w-3 animate-spin" />}
                 Join
               </button>
             </form>
