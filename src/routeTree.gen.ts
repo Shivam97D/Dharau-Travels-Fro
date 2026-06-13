@@ -9,15 +9,28 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TripsSlugRouteImport } from './routes/trips.$slug'
+import { Route as ResetPasswordTokenRouteImport } from './routes/reset-password.$token'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -40,19 +53,30 @@ const TripsSlugRoute = TripsSlugRouteImport.update({
   path: '/trips/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordTokenRoute = ResetPasswordTokenRouteImport.update({
+  id: '/reset-password/$token',
+  path: '/reset-password/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/terms': typeof TermsRoute
+  '/reset-password/$token': typeof ResetPasswordTokenRoute
   '/trips/$slug': typeof TripsSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/terms': typeof TermsRoute
+  '/reset-password/$token': typeof ResetPasswordTokenRoute
   '/trips/$slug': typeof TripsSlugRoute
 }
 export interface FileRoutesById {
@@ -60,32 +84,77 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/terms': typeof TermsRoute
+  '/reset-password/$token': typeof ResetPasswordTokenRoute
   '/trips/$slug': typeof TripsSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/dashboard' | '/profile' | '/trips/$slug'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/dashboard'
+    | '/privacy'
+    | '/profile'
+    | '/terms'
+    | '/reset-password/$token'
+    | '/trips/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/dashboard' | '/profile' | '/trips/$slug'
-  id: '__root__' | '/' | '/admin' | '/dashboard' | '/profile' | '/trips/$slug'
+  to:
+    | '/'
+    | '/admin'
+    | '/dashboard'
+    | '/privacy'
+    | '/profile'
+    | '/terms'
+    | '/reset-password/$token'
+    | '/trips/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/dashboard'
+    | '/privacy'
+    | '/profile'
+    | '/terms'
+    | '/reset-password/$token'
+    | '/trips/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   DashboardRoute: typeof DashboardRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
+  TermsRoute: typeof TermsRoute
+  ResetPasswordTokenRoute: typeof ResetPasswordTokenRoute
   TripsSlugRoute: typeof TripsSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile': {
       id: '/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -116,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TripsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password/$token': {
+      id: '/reset-password/$token'
+      path: '/reset-password/$token'
+      fullPath: '/reset-password/$token'
+      preLoaderRoute: typeof ResetPasswordTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -123,7 +199,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   DashboardRoute: DashboardRoute,
+  PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
+  TermsRoute: TermsRoute,
+  ResetPasswordTokenRoute: ResetPasswordTokenRoute,
   TripsSlugRoute: TripsSlugRoute,
 }
 export const routeTree = rootRouteImport

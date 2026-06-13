@@ -111,6 +111,18 @@ class ApiClient {
     return this.get("/auth/me");
   }
 
+  async forgotPassword(email: string) {
+    return this.post("/auth/forgot-password", { email });
+  }
+
+  async resetPassword(token: string, password: string) {
+    const response = await this.put(`/auth/reset-password/${token}`, { password });
+    if (response.token) {
+      this.setStoredToken(response.token);
+    }
+    return response;
+  }
+
   async getTrips(params?: Record<string, any>) {
     const queryString = params ? "?" + new URLSearchParams(params).toString() : "";
     return this.get(`/trips${queryString}`);

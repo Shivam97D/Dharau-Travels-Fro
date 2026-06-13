@@ -1,16 +1,32 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, Lock, User, Plane, AlertCircle, Loader2 } from "lucide-react";
+import { X, Mail, Lock, User, Plane, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import api from "@/lib/api";
+
+type Mode = "login" | "register" | "forgot";
 
 export function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<Mode>("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [devResetLink, setDevResetLink] = useState<string | null>(null);
   const { login, register } = useAuth();
+
+  const reset = () => {
+    setError("");
+    setSent(false);
+    setDevResetLink(null);
+  };
+
+  const switchMode = (m: Mode) => {
+    setMode(m);
+    reset();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,16 +36,32 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
     try {
       if (mode === "login") {
         await login(email, password);
-      } else {
+        onClose();
+      } else if (mode === "register") {
         await register(name, email, password);
+        onClose();
+      } else {
+        const res = await api.forgotPassword(email);
+        setSent(true);
+        // Email delivery isn't wired yet: in dev the backend returns the raw token
+        // so the reset flow is testable end-to-end.
+        const token = (res as { resetToken?: string }).resetToken;
+        if (token) setDevResetLink(`/reset-password/${token}`);
       }
-      onClose();
-    } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  const title = mode === "login" ? "Welcome back" : mode === "register" ? "Join the journey" : "Reset your password";
+  const subtitle =
+    mode === "login"
+      ? "Sign in to continue your adventure."
+      : mode === "register"
+        ? "Create an account to start planning."
+        : "Enter your email and we'll send you a reset link.";
 
   return (
     <AnimatePresence>
@@ -64,14 +96,8 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
             </div>
 
             <div className="px-6 pb-6 pt-12">
-              <h2 className="text-2xl font-bold">
-                {mode === "login" ? "Welcome back" : "Join the journey"}
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {mode === "login"
-                  ? "Sign in to continue your adventure."
-                  : "Create an account to start planning."}
-              </p>
+              <h2 className="text-2xl font-bold">{title}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
 
               {error && (
                 <motion.div
@@ -84,54 +110,99 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                 </motion.div>
               )}
 
-              <form onSubmit={handleSubmit} className="mt-6 space-y-3">
-                {mode === "register" && (
-                  <Field
-                    icon={<User className="h-4 w-4" />}
-                    placeholder="Full name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                )}
-                <Field
-                  icon={<Mail className="h-4 w-4" />}
-                  placeholder="Email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-                <Field
-                  icon={<Lock className="h-4 w-4" />}
-                  placeholder="Password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="mt-2 w-full rounded-2xl gradient-sunset py-3 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {mode === "login" ? "Sign in" : "Create account"}
-                </button>
-              </form>
+              {mode === "forgot" && sent ? (
+                <div className="mt-6">
+                  <div className="flex items-start gap-2 rounded-xl bg-emerald-500/10 px-3 py-3 text-sm text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>If that email is registered, a password reset link has been sent.</span>
+                  </div>
+                  {devResetLink && (
+                    <a
+                      href={devResetLink}
+                      className="mt-3 block break-all rounded-xl bg-muted/60 px-3 py-2 text-xs text-primary underline"
+                    >
+                      Dev only — open reset link: {devResetLink}
+                    </a>
+                  )}
+                  <button
+                    onClick={() => switchMode("login")}
+                    className="mt-5 w-full rounded-2xl gradient-sunset py-3 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-[1.02]"
+                  >
+                    Back to sign in
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <form onSubmit={handleSubmit} className="mt-6 space-y-3">
+                    {mode === "register" && (
+                      <Field
+                        icon={<User className="h-4 w-4" />}
+                        placeholder="Full name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                      />
+                    )}
+                    <Field
+                      icon={<Mail className="h-4 w-4" />}
+                      placeholder="Email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                    {mode !== "forgot" && (
+                      <Field
+                        icon={<Lock className="h-4 w-4" />}
+                        placeholder="Password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                    )}
 
-              <div className="mt-5 text-center text-xs text-muted-foreground">
-                {mode === "login" ? "New here? " : "Have an account? "}
-                <button
-                  onClick={() => {
-                    setMode(mode === "login" ? "register" : "login");
-                    setError("");
-                  }}
-                  className="font-semibold text-primary hover:underline"
-                >
-                  {mode === "login" ? "Create account" : "Sign in"}
-                </button>
-              </div>
+                    {mode === "login" && (
+                      <div className="text-right">
+                        <button
+                          type="button"
+                          onClick={() => switchMode("forgot")}
+                          className="text-xs font-medium text-primary hover:underline"
+                        >
+                          Forgot password?
+                        </button>
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl gradient-sunset py-3 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                      {mode === "login" ? "Sign in" : mode === "register" ? "Create account" : "Send reset link"}
+                    </button>
+                  </form>
+
+                  <div className="mt-5 text-center text-xs text-muted-foreground">
+                    {mode === "forgot" ? (
+                      <button onClick={() => switchMode("login")} className="font-semibold text-primary hover:underline">
+                        Back to sign in
+                      </button>
+                    ) : (
+                      <>
+                        {mode === "login" ? "New here? " : "Have an account? "}
+                        <button
+                          onClick={() => switchMode(mode === "login" ? "register" : "login")}
+                          className="font-semibold text-primary hover:underline"
+                        >
+                          {mode === "login" ? "Create account" : "Sign in"}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </motion.div>
         </motion.div>

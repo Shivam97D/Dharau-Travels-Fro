@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Instagram, Twitter, Youtube, Facebook, Mail, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -130,15 +131,15 @@ export function Footer() {
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row">
           <div>© {new Date().getFullYear()} DHARAVU JOURNEYS Travel Co. Made with sunshine.</div>
           <div className="flex gap-5">
-            <a href="#" className="hover:text-foreground">
+            <Link to="/privacy" className="hover:text-foreground">
               Privacy
-            </a>
-            <a href="#" className="hover:text-foreground">
+            </Link>
+            <Link to="/terms" className="hover:text-foreground">
               Terms
-            </a>
-            <a href="#" className="hover:text-foreground">
+            </Link>
+            <Link to="/privacy" hash="cookies" className="hover:text-foreground">
               Cookies
-            </a>
+            </Link>
           </div>
         </div>
       </div>
