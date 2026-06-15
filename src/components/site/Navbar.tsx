@@ -142,7 +142,8 @@ export function Navbar({ onLogin }: { onLogin?: () => void }) {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="mt-2 overflow-hidden rounded-3xl glass p-4 md:hidden"
+              className="mt-2 overflow-hidden rounded-3xl p-4 md:hidden border border-white/20 shadow-float"
+            style={{ background: "oklch(1 0 0 / 0.92)", backdropFilter: "blur(24px) saturate(180%)", WebkitBackdropFilter: "blur(24px) saturate(180%)" }}
             >
               <nav className="flex flex-col gap-1">
                 {links.map((l) => (
