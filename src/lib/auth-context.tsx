@@ -31,13 +31,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const checkAuth = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     try {
       const response = await api.getMe();
       if (response.success && response.data) {
         setUser(response.data as User);
       }
-    } catch (error) {
-      console.error("Auth check failed:", error);
+    } catch {
+      localStorage.removeItem("token");
     } finally {
       setLoading(false);
     }
