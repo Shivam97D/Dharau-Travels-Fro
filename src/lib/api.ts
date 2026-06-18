@@ -249,6 +249,10 @@ class ApiClient {
     return this.delete(`/admin/users/${id}`);
   }
 
+  async adminResetPassword(id: string, password: string) {
+    return this.put(`/admin/users/${id}/reset-password`, { password });
+  }
+
   async getAllReviews(params?: Record<string, any>) {
     const queryString = params ? "?" + new URLSearchParams(params).toString() : "";
     return this.get(`/admin/reviews${queryString}`);
