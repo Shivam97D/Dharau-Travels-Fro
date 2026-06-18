@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Plane, Moon, Sun, LogOut, Shield } from "lucide-react";
+import { Menu, X, Plane, Moon, Sun, LogOut, Shield, LayoutDashboard } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { useAuthModal } from "@/lib/auth-modal";
@@ -92,6 +92,13 @@ export function Navbar({ onLogin }: { onLogin?: () => void }) {
                     <Shield className="h-4 w-4" />
                   </Link>
                 )}
+                <Link
+                  to="/dashboard"
+                  title="My Dashboard"
+                  className="hidden h-9 w-9 place-items-center rounded-full glass text-foreground/80 transition hover:scale-105 hover:text-foreground sm:grid"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                </Link>
                 <Link
                   to="/profile"
                   className="hidden items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold backdrop-blur-sm transition hover:scale-105 hover:border-white/30 hover:bg-white/10 sm:flex"

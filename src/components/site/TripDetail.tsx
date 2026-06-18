@@ -18,7 +18,7 @@ import {
   Zap,
   Heart,
 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -124,12 +124,13 @@ export function TripDetail({ slug }: { slug: string }) {
   const [bookingOpen, setBookingOpen] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savingTrip, setSavingTrip] = useState(false);
+  const [alreadyBooked, setAlreadyBooked] = useState(false);
 
   const { isAuthenticated, user } = useAuth();
   const { openAuth } = useAuthModal();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Reflect whether this trip is already in the user's saved list.
     if (user?.savedTrips && trip) {
       const ids = (user.savedTrips as unknown[]).map((t) =>
         typeof t === "string" ? t : (t as { _id: string })._id,
@@ -137,6 +138,20 @@ export function TripDetail({ slug }: { slug: string }) {
       setSaved(ids.includes(trip._id));
     }
   }, [user, trip]);
+
+  // Check if the user already has an active booking for this trip
+  useEffect(() => {
+    if (!isAuthenticated || !trip) return;
+    api.getMyBookings().then((res) => {
+      if (!res.success) return;
+      const bookings = (res.data as Array<{ trip: string | { _id: string }; status: string }>) ?? [];
+      const hasActive = bookings.some((b) => {
+        const tid = typeof b.trip === "string" ? b.trip : b.trip?._id;
+        return tid === trip._id && b.status !== "cancelled";
+      });
+      setAlreadyBooked(hasActive);
+    }).catch(() => {});
+  }, [isAuthenticated, trip]);
 
   const handleToggleSave = async () => {
     if (!isAuthenticated) {
@@ -436,14 +451,24 @@ export function TripDetail({ slug }: { slug: string }) {
                 </div>
               )}
 
-              <button
-                onClick={() => setBookingOpen(true)}
-                disabled={trip.status === "soldout" || trip.availableSeats === 0}
-                className="flex w-full items-center justify-center gap-2 rounded-full gradient-sunset py-3 text-sm font-bold text-white shadow-glow transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <IndianRupee className="h-4 w-4" />
-                {trip.status === "soldout" ? "Sold Out" : "Book Now"}
-              </button>
+              {alreadyBooked ? (
+                <button
+                  onClick={() => navigate({ to: "/dashboard" })}
+                  className="flex w-full items-center justify-center gap-2 rounded-full gradient-aurora py-3 text-sm font-bold text-white shadow-glow transition hover:scale-[1.02]"
+                >
+                  <Check className="h-4 w-4" />
+                  Go to Dashboard
+                </button>
+              ) : (
+                <button
+                  onClick={() => { if (!isAuthenticated) { openAuth(); return; } setBookingOpen(true); }}
+                  disabled={trip.status === "soldout" || trip.availableSeats === 0}
+                  className="flex w-full items-center justify-center gap-2 rounded-full gradient-sunset py-3 text-sm font-bold text-white shadow-glow transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <IndianRupee className="h-4 w-4" />
+                  {trip.status === "soldout" ? "Sold Out" : "Book Now"}
+                </button>
+              )}
 
               <button
                 onClick={handleToggleSave}
@@ -485,13 +510,22 @@ export function TripDetail({ slug }: { slug: string }) {
             <p className="text-xs text-muted-foreground">From</p>
             <p className="text-xl font-bold">{formatINR(trip.price.amount)}</p>
           </div>
-          <button
-            onClick={() => setBookingOpen(true)}
-            disabled={trip.status === "soldout" || trip.availableSeats === 0}
-            className="flex-1 rounded-full gradient-sunset py-3 text-sm font-bold text-white shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
-          >
-            {trip.status === "soldout" ? "Sold Out" : "Book Now"}
-          </button>
+          {alreadyBooked ? (
+            <button
+              onClick={() => navigate({ to: "/dashboard" })}
+              className="flex-1 rounded-full gradient-aurora py-3 text-sm font-bold text-white shadow-glow transition hover:scale-[1.02]"
+            >
+              Go to Dashboard
+            </button>
+          ) : (
+            <button
+              onClick={() => { if (!isAuthenticated) { openAuth(); return; } setBookingOpen(true); }}
+              disabled={trip.status === "soldout" || trip.availableSeats === 0}
+              className="flex-1 rounded-full gradient-sunset py-3 text-sm font-bold text-white shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
+            >
+              {trip.status === "soldout" ? "Sold Out" : "Book Now"}
+            </button>
+          )}
         </div>
       </div>
 
