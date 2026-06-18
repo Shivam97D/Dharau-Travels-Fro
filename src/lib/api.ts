@@ -64,10 +64,10 @@ class ApiClient {
       throw new Error("Cannot reach the server. Please check your connection.");
     }
 
-    // Render free-tier cold start: retry up to 2 more times on 504
-    if (response.status === 504 && attempt <= 2) {
+    // Render free-tier cold start: retry up to 4 more times on 504
+    if (response.status === 504 && attempt <= 4) {
       this.onWakingUp?.(attempt);
-      await sleep(6000);
+      await sleep(attempt * 7000); // 7s, 14s, 21s, 28s
       return this.request<T>(endpoint, options, attempt + 1);
     }
 

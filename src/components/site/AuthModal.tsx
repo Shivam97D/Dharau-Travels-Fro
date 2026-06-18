@@ -84,18 +84,8 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
 
     try {
       if (mode === "login") {
-        const res = await api.login(email, password);
-        const r = res as { otpRequired?: boolean; devOtp?: string };
-        if (r.otpRequired) {
-          setOtpEmail(email);
-          setResendCooldown(60);
-          switchMode("otp");
-          if (r.devOtp) setError(`Dev: OTP is ${r.devOtp}`);
-        } else {
-          // Already verified — auth-context login handles token storage
-          await login(email, password);
-          onClose();
-        }
+        await login(email, password);
+        onClose();
       } else if (mode === "register") {
         await register(name, email, password);
         onClose();

@@ -28,6 +28,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Warmup ping — wakes Render free-tier before user tries to act
+    fetch("/api/health").catch(() => {});
     checkAuth();
   }, []);
 
