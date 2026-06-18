@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, MapPin, Calendar, Check, X, CreditCard } from "lucide-react";
+import { Loader2, MapPin, Calendar, Check, X, CreditCard, Download, Search } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
-import type { Booking } from "@/lib/types";
+import type { Booking, Trip } from "@/lib/types";
 
 const formatINR = (n: number) => `₹${(n ?? 0).toLocaleString("en-IN")}`;
 
@@ -16,16 +16,29 @@ const statusStyles: Record<string, string> = {
 
 export function AdminBookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("");
+  const [filterPayment, setFilterPayment] = useState("");
+  const [filterTrip, setFilterTrip] = useState("");
+  const [search, setSearch] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  // Build the active filter params (shared by load + export).
+  const buildParams = () => {
+    const params: Record<string, string> = {};
+    if (filterStatus) params.status = filterStatus;
+    if (filterPayment) params.paymentStatus = filterPayment;
+    if (filterTrip) params.trip = filterTrip;
+    if (search.trim()) params.search = search.trim();
+    return params;
+  };
 
   const load = async () => {
     try {
       setLoading(true);
-      const params: Record<string, string> = {};
-      if (filterStatus) params.status = filterStatus;
-      const res = await api.getAllBookings(params);
+      const res = await api.getAllBookings(buildParams());
       if (res.success) setBookings((res.data as Booking[]) ?? []);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to load bookings");
@@ -34,9 +47,35 @@ export function AdminBookings() {
     }
   };
 
+  // Load trips once for the trip-wise filter dropdown.
+  useEffect(() => {
+    api.getAdminTrips({ limit: "200" })
+      .then((res) => { if (res.success) setTrips((res.data as Trip[]) ?? []); })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     load();
-  }, [filterStatus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterStatus, filterPayment, filterTrip]);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const blob = await api.exportBookings(buildParams());
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bookings-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Bookings exported");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Export failed");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const setStatus = async (id: string, status: string) => {
     setBusy(id);
@@ -68,22 +107,69 @@ export function AdminBookings() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-3xl glass p-6 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Bookings</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Confirm, complete, or cancel booking requests</p>
+      <div className="flex flex-col gap-4 rounded-3xl glass p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Bookings</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Confirm, complete, cancel, or export bookings</p>
+          </div>
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl gradient-sunset px-4 py-2 text-sm font-semibold text-white shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
+          >
+            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            Export CSV
+          </button>
         </div>
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="rounded-2xl bg-white/5 px-4 py-2 text-sm outline-none transition focus:bg-white/10"
-        >
-          <option value="">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
+
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <form
+            onSubmit={(e) => { e.preventDefault(); load(); }}
+            className="relative sm:col-span-2 lg:col-span-1"
+          >
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search booking ID…"
+              className="w-full rounded-2xl bg-white/5 py-2 pl-9 pr-3 text-sm outline-none transition focus:bg-white/10"
+            />
+          </form>
+          <select
+            value={filterTrip}
+            onChange={(e) => setFilterTrip(e.target.value)}
+            className="rounded-2xl bg-white/5 px-4 py-2 text-sm outline-none transition focus:bg-white/10"
+          >
+            <option value="">All Trips</option>
+            {trips.map((t) => (
+              <option key={t._id} value={t._id}>{t.title}</option>
+            ))}
+          </select>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="rounded-2xl bg-white/5 px-4 py-2 text-sm outline-none transition focus:bg-white/10"
+          >
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <select
+            value={filterPayment}
+            onChange={(e) => setFilterPayment(e.target.value)}
+            className="rounded-2xl bg-white/5 px-4 py-2 text-sm outline-none transition focus:bg-white/10"
+          >
+            <option value="">All Payments</option>
+            <option value="pending">Payment Pending</option>
+            <option value="processing">Processing</option>
+            <option value="completed">Paid</option>
+            <option value="failed">Failed</option>
+            <option value="refunded">Refunded</option>
+          </select>
+        </div>
       </div>
 
       {loading ? (

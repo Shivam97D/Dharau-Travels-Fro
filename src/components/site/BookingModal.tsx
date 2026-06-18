@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Minus, Plus, Loader2, Calendar, ShieldCheck, LogIn } from "lucide-react";
+import { X, Minus, Plus, Loader2, Calendar, ShieldCheck, LogIn, CreditCard } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import api from "@/lib/api";
+import { payForBooking } from "@/lib/razorpay";
 import { useAuth } from "@/lib/auth-context";
 import { useAuthModal } from "@/lib/auth-modal";
 import type { Trip } from "@/lib/types";
@@ -72,41 +73,84 @@ export function BookingModal({
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
   const [specialRequests, setSpecialRequests] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState<"pay" | "request" | null>(null);
 
   const totalTravelers = adults + children + infants;
   const basePrice = trip.price.amount * adults + trip.price.amount * 0.7 * children;
   const tax = basePrice * 0.1;
   const total = basePrice + tax - (trip.price.discount || 0);
 
-  const handleSubmit = async () => {
+  // Creates the booking, returns its id — shared by both flows.
+  const createPendingBooking = async (): Promise<string | null> => {
+    const res = await api.createBooking({
+      trip: trip._id,
+      departureDate,
+      travelers: { adults, children, infants },
+      travelerDetails: [],
+      specialRequests,
+    });
+    const booking = res.data as { _id: string } | undefined;
+    return res.success && booking ? booking._id : null;
+  };
+
+  const validate = (): boolean => {
     if (!departureDate) {
       toast.error("Please choose a departure date");
-      return;
+      return false;
     }
     if (totalTravelers > trip.availableSeats) {
       toast.error(`Only ${trip.availableSeats} seats left on this trip`);
-      return;
+      return false;
     }
+    return true;
+  };
 
-    setSubmitting(true);
+  // Flow 1: Pay upfront → Razorpay → booking confirmed on success.
+  const handlePayNow = async () => {
+    if (!validate()) return;
+    setSubmitting("pay");
     try {
-      const res = await api.createBooking({
-        trip: trip._id,
-        departureDate,
-        travelers: { adults, children, infants },
-        travelerDetails: [],
-        specialRequests,
+      const bookingId = await createPendingBooking();
+      if (!bookingId) throw new Error("Could not create booking");
+
+      const result = await payForBooking({
+        bookingId,
+        tripTitle: trip.title,
+        prefill: { name: user?.name, email: user?.email, contact: user?.phone },
       });
-      if (res.success) {
-        toast.success("Booking request submitted! We'll confirm shortly. 🎉");
+
+      if (result.status === "success") {
+        toast.success("Payment successful — your booking is confirmed! 🎉");
         onClose();
         navigate({ to: "/dashboard" });
+      } else if (result.status === "dismissed") {
+        toast.info("Payment cancelled. Your booking is saved as pending — pay anytime from your dashboard.");
+        onClose();
+        navigate({ to: "/dashboard" });
+      } else {
+        toast.error(result.message);
       }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Could not start payment");
+    } finally {
+      setSubmitting(null);
+    }
+  };
+
+  // Flow 2: Request to book → stays pending for admin approval.
+  const handleRequest = async () => {
+    if (!validate()) return;
+    setSubmitting("request");
+    try {
+      const bookingId = await createPendingBooking();
+      if (!bookingId) throw new Error("Could not submit booking request");
+      toast.success("Booking request submitted! We'll confirm shortly. 🎉");
+      onClose();
+      navigate({ to: "/dashboard" });
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Could not submit booking request");
     } finally {
-      setSubmitting(false);
+      setSubmitting(null);
     }
   };
 
@@ -220,15 +264,23 @@ export function BookingModal({
                 </div>
 
                 <button
-                  onClick={handleSubmit}
-                  disabled={submitting}
+                  onClick={handlePayNow}
+                  disabled={submitting !== null}
                   className="mt-5 flex w-full items-center justify-center gap-2 rounded-full gradient-sunset py-3 text-sm font-bold text-white shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
                 >
-                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                  {submitting ? "Submitting…" : "Submit booking request"}
+                  {submitting === "pay" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                  {submitting === "pay" ? "Opening payment…" : `Pay & confirm · ${formatINR(total)}`}
+                </button>
+                <button
+                  onClick={handleRequest}
+                  disabled={submitting !== null}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 py-3 text-sm font-semibold transition hover:bg-white/10 disabled:opacity-50"
+                >
+                  {submitting === "request" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                  {submitting === "request" ? "Submitting…" : "Request to book (pay later)"}
                 </button>
                 <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
-                  Signed in as {user?.email} · No payment charged now
+                  Signed in as {user?.email}
                 </p>
               </>
             )}

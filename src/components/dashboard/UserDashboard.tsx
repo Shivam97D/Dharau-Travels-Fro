@@ -10,10 +10,13 @@ import {
   Clock,
   XCircle,
   Settings,
+  CreditCard,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import api from "@/lib/api";
+import { payForBooking } from "@/lib/razorpay";
+import { useAuth } from "@/lib/auth-context";
 import type { Booking, Trip } from "@/lib/types";
 
 const formatINR = (n: number) => `₹${(n ?? 0).toLocaleString("en-IN")}`;
@@ -30,6 +33,8 @@ export function UserDashboard() {
   const [saved, setSaved] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState<string | null>(null);
+  const [paying, setPaying] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const load = async () => {
     try {
@@ -59,6 +64,32 @@ export function UserDashboard() {
       toast.error(err instanceof Error ? err.message : "Could not cancel booking");
     } finally {
       setCancelling(null);
+    }
+  };
+
+  const handlePay = async (b: Booking) => {
+    const trip = typeof b.trip === "string" ? null : b.trip;
+    setPaying(b._id);
+    try {
+      const result = await payForBooking({
+        bookingId: b._id,
+        tripTitle: trip?.title ?? "Trip",
+        prefill: { name: user?.name, email: user?.email, contact: user?.phone },
+      });
+      if (result.status === "success") {
+        toast.success("Payment successful — booking confirmed! 🎉");
+        setBookings((prev) =>
+          prev.map((x) =>
+            x._id === b._id ? { ...x, status: "confirmed", payment: { ...x.payment, status: "completed" } } : x,
+          ),
+        );
+      } else if (result.status === "error") {
+        toast.error(result.message);
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Could not start payment");
+    } finally {
+      setPaying(null);
     }
   };
 
@@ -154,6 +185,17 @@ export function UserDashboard() {
                             {b.status}
                           </span>
                         </div>
+                        {b.payment?.status !== "completed" && b.status !== "cancelled" && b.status !== "completed" ? (
+                          <button
+                            onClick={() => handlePay(b)}
+                            disabled={paying === b._id}
+                            title="Pay now"
+                            className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20 disabled:opacity-50"
+                          >
+                            {paying === b._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                            Pay now
+                          </button>
+                        ) : null}
                         {b.status === "pending" || b.status === "confirmed" ? (
                           <button
                             onClick={() => handleCancel(b)}

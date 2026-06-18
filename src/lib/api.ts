@@ -256,6 +256,41 @@ class ApiClient {
     return this.get(`/admin/bookings${queryString}`);
   }
 
+  // Downloads bookings as a CSV blob (respects the same filters as the list).
+  async exportBookings(params?: Record<string, any>) {
+    const queryString = params ? "?" + new URLSearchParams(params).toString() : "";
+    const headers: Record<string, string> = {};
+    if (this.token) headers["Authorization"] = `Bearer ${this.token}`;
+    const res = await fetch(`${this.baseUrl}/admin/bookings/export${queryString}`, { headers });
+    if (!res.ok) throw new Error("Failed to export bookings");
+    return res.blob();
+  }
+
+  // --- Razorpay payment flow ---
+  async createPaymentOrder(bookingId: string) {
+    return this.post<{
+      orderId: string;
+      amount: number;
+      currency: string;
+      keyId: string;
+      bookingId: string;
+      bookingRef: string;
+    }>("/payments/order", { bookingId });
+  }
+
+  async verifyPayment(payload: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+    bookingId: string;
+  }) {
+    return this.post("/payments/verify", payload);
+  }
+
+  async markPaymentFailed(bookingId: string) {
+    return this.post("/payments/failed", { bookingId });
+  }
+
   async createTrip(tripData: any) {
     return this.post("/admin/trips", tripData);
   }
