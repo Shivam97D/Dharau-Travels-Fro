@@ -1,31 +1,77 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, Lock, User, Plane, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
-import { useState } from "react";
+import { X, Mail, Lock, User, Plane, AlertCircle, Loader2, CheckCircle2, RefreshCw } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import api from "@/lib/api";
 
-type Mode = "login" | "register" | "forgot";
+type Mode = "login" | "register" | "forgot" | "otp";
 
 export function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [mode, setMode] = useState<Mode>("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [otpEmail, setOtpEmail] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [devResetLink, setDevResetLink] = useState<string | null>(null);
-  const { login, register } = useAuth();
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const { login, register, refreshUser } = useAuth();
+
+  // Cooldown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
 
   const reset = () => {
     setError("");
     setSent(false);
     setDevResetLink(null);
+    setOtp(["", "", "", "", "", ""]);
   };
 
-  const switchMode = (m: Mode) => {
-    setMode(m);
-    reset();
+  const switchMode = (m: Mode) => { setMode(m); reset(); };
+
+  const handleOtpKey = (idx: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otp[idx] && idx > 0) {
+      otpRefs.current[idx - 1]?.focus();
+    }
+  };
+
+  const handleOtpChange = (idx: number, val: string) => {
+    const digit = val.replace(/\D/g, "").slice(-1);
+    const next = [...otp];
+    next[idx] = digit;
+    setOtp(next);
+    if (digit && idx < 5) otpRefs.current[idx + 1]?.focus();
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (pasted.length === 6) {
+      setOtp(pasted.split(""));
+      otpRefs.current[5]?.focus();
+    }
+    e.preventDefault();
+  };
+
+  const handleResend = async () => {
+    if (resendCooldown > 0) return;
+    setLoading(true);
+    try {
+      await api.resendLoginOtp(otpEmail);
+      setResendCooldown(60);
+      setError("");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Could not resend OTP");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,16 +81,30 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
 
     try {
       if (mode === "login") {
-        await login(email, password);
-        onClose();
+        const res = await api.login(email, password);
+        const r = res as { otpRequired?: boolean; devOtp?: string };
+        if (r.otpRequired) {
+          setOtpEmail(email);
+          setResendCooldown(60);
+          switchMode("otp");
+          if (r.devOtp) setError(`Dev: OTP is ${r.devOtp}`);
+        } else {
+          // Already verified — auth-context login handles token storage
+          await login(email, password);
+          onClose();
+        }
       } else if (mode === "register") {
         await register(name, email, password);
+        onClose();
+      } else if (mode === "otp") {
+        const code = otp.join("");
+        if (code.length < 6) { setError("Enter all 6 digits"); setLoading(false); return; }
+        await api.verifyLoginOtp(otpEmail, code);
+        await refreshUser();
         onClose();
       } else {
         const res = await api.forgotPassword(email);
         setSent(true);
-        // Email delivery isn't wired yet: in dev the backend returns the raw token
-        // so the reset flow is testable end-to-end.
         const token = (res as { resetToken?: string }).resetToken;
         if (token) setDevResetLink(`/reset-password/${token}`);
       }
@@ -55,13 +115,17 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
     }
   };
 
-  const title = mode === "login" ? "Welcome back" : mode === "register" ? "Join the journey" : "Reset your password";
+  const title =
+    mode === "login" ? "Welcome back"
+    : mode === "register" ? "Join the journey"
+    : mode === "otp" ? "Verify your email"
+    : "Reset your password";
+
   const subtitle =
-    mode === "login"
-      ? "Sign in to continue your adventure."
-      : mode === "register"
-        ? "Create an account to start planning."
-        : "Enter your email and we'll send you a reset link.";
+    mode === "login" ? "Sign in to continue your adventure."
+    : mode === "register" ? "Create an account to start planning."
+    : mode === "otp" ? `Enter the 6-digit code sent to ${otpEmail}`
+    : "Enter your email and we'll send you a reset link.";
 
   return (
     <AnimatePresence>
@@ -99,17 +163,29 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
               <h2 className="text-2xl font-bold">{title}</h2>
               <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
 
-              {error && (
+              {error && !error.startsWith("Dev:") && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mt-4 flex items-center gap-2 rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive"
                 >
-                  <AlertCircle className="h-4 w-4" />
+                  <AlertCircle className="h-4 w-4 shrink-0" />
                   {error}
                 </motion.div>
               )}
 
+              {/* Dev OTP hint */}
+              {error.startsWith("Dev:") && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 rounded-xl bg-amber-500/10 px-3 py-2 text-xs text-amber-400"
+                >
+                  {error}
+                </motion.div>
+              )}
+
+              {/* Forgot password success */}
               {mode === "forgot" && sent ? (
                 <div className="mt-6">
                   <div className="flex items-start gap-2 rounded-xl bg-emerald-500/10 px-3 py-3 text-sm text-emerald-600 dark:text-emerald-400">
@@ -131,6 +207,51 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                     Back to sign in
                   </button>
                 </div>
+
+              /* OTP step */
+              ) : mode === "otp" ? (
+                <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+                  <div className="flex justify-center gap-2" onPaste={handleOtpPaste}>
+                    {otp.map((digit, idx) => (
+                      <input
+                        key={idx}
+                        ref={(el) => { otpRefs.current[idx] = el; }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleOtpChange(idx, e.target.value)}
+                        onKeyDown={(e) => handleOtpKey(idx, e)}
+                        className="h-12 w-10 rounded-xl border border-border bg-muted/40 text-center text-lg font-bold outline-none transition focus:border-primary focus:bg-card"
+                      />
+                    ))}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl gradient-sunset py-3 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                    Verify & Sign in
+                  </button>
+
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <button type="button" onClick={() => switchMode("login")} className="hover:text-foreground">
+                      ← Back
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      disabled={resendCooldown > 0 || loading}
+                      className="flex items-center gap-1 font-semibold text-primary hover:underline disabled:opacity-50"
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                      {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend OTP"}
+                    </button>
+                  </div>
+                </form>
+
               ) : (
                 <>
                   <form onSubmit={handleSubmit} className="mt-6 space-y-3">

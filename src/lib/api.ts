@@ -126,6 +126,16 @@ class ApiClient {
     return this.post("/auth/forgot-password", { email });
   }
 
+  async verifyLoginOtp(email: string, otp: string) {
+    const response = await this.post<{ token?: string }>("/auth/verify-otp", { email, otp });
+    if (response.token) this.setStoredToken(response.token);
+    return response;
+  }
+
+  async resendLoginOtp(email: string) {
+    return this.post("/auth/resend-otp", { email });
+  }
+
   async resetPassword(token: string, password: string) {
     const response = await this.put(`/auth/reset-password/${token}`, { password });
     if (response.token) {

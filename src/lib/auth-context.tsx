@@ -9,6 +9,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   updateProfile: (data: {
     name?: string;
     email?: string;
@@ -66,6 +67,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshUser = async () => {
+    const response = await api.getMe();
+    if (response.success && response.data) {
+      setUser(response.data as User);
+    }
+  };
+
   const logout = async () => {
     await api.logout();
     setUser(null);
@@ -92,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     register,
     logout,
+    refreshUser,
     updateProfile,
     isAuthenticated: !!user,
     isAdmin: user?.role === "admin" || user?.role === "owner",
