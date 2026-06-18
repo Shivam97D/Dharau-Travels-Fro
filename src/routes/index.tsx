@@ -5,7 +5,7 @@ import { Hero } from "@/components/site/Hero";
 import { FeaturedTrips } from "@/components/site/FeaturedTrips";
 import { WhyUs } from "@/components/site/WhyUs";
 import { Categories } from "@/components/site/Categories";
-// import { Testimonials } from "@/components/site/Testimonials";
+import { Testimonials } from "@/components/site/Testimonials";
 import { Gallery } from "@/components/site/Gallery";
 import { PlannerCTA } from "@/components/site/PlannerCTA";
 import { Footer } from "@/components/site/Footer";
@@ -28,8 +28,8 @@ function Index() {
         {/* <Destinations /> */}
         <FeaturedTrips />
         <WhyUs />
+        <Testimonials />
         <Categories />
-        {/* <Testimonials /> */}
         <Gallery />
         <PlannerCTA />
       </main>

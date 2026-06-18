@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Star, Check, X } from "lucide-react";
+import { Loader2, Star, Check, X, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -10,6 +10,7 @@ interface ReviewRow {
   title: string;
   comment: string;
   status: string;
+  sortOrder: number;
   createdAt: string;
   user?: { name?: string; email?: string };
   trip?: { title?: string; destination?: string };
@@ -33,7 +34,10 @@ export function AdminReviews() {
       const params: Record<string, string> = {};
       if (filterStatus) params.status = filterStatus;
       const res = await api.getAllReviews(params);
-      if (res.success) setReviews((res.data as ReviewRow[]) ?? []);
+      if (res.success) {
+        const sorted = ((res.data as ReviewRow[]) ?? []).sort((a, b) => a.sortOrder - b.sortOrder);
+        setReviews(sorted);
+      }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to load reviews");
     } finally {
@@ -41,9 +45,7 @@ export function AdminReviews() {
     }
   };
 
-  useEffect(() => {
-    load();
-  }, [filterStatus]);
+  useEffect(() => { load(); }, [filterStatus]);
 
   const moderate = async (id: string, status: string) => {
     setBusy(id);
@@ -62,12 +64,51 @@ export function AdminReviews() {
     }
   };
 
+  const deleteReview = async (id: string) => {
+    if (!confirm("Delete this review?")) return;
+    setBusy(id);
+    try {
+      await api.deleteReview(id);
+      toast.success("Review deleted");
+      setReviews((prev) => prev.filter((r) => r._id !== id));
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Delete failed");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const moveOrder = async (index: number, dir: -1 | 1) => {
+    const swapIdx = index + dir;
+    if (swapIdx < 0 || swapIdx >= reviews.length) return;
+    const updated = [...reviews];
+    const a = updated[index];
+    const b = updated[swapIdx];
+    // Swap sortOrder values
+    const aOrder = a.sortOrder;
+    a.sortOrder = b.sortOrder;
+    b.sortOrder = aOrder;
+    [updated[index], updated[swapIdx]] = [updated[swapIdx], updated[index]];
+    setReviews(updated);
+    try {
+      await Promise.all([
+        api.setReviewOrder(a._id, a.sortOrder),
+        api.setReviewOrder(b._id, b.sortOrder),
+      ]);
+    } catch {
+      toast.error("Could not save order");
+      load();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 rounded-3xl glass p-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className="text-2xl font-bold">Review Moderation</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Approve or reject traveler reviews</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Approve, reject, delete, or reorder which reviews appear on the homepage.
+          </p>
         </div>
         <select
           value={filterStatus}
@@ -81,6 +122,12 @@ export function AdminReviews() {
         </select>
       </div>
 
+      {filterStatus === "approved" && (
+        <div className="rounded-2xl border border-border/50 bg-card/50 px-4 py-3 text-xs text-muted-foreground">
+          Use the ↑↓ arrows to control the order reviews appear on the homepage marquee.
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center rounded-3xl glass p-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -89,25 +136,40 @@ export function AdminReviews() {
         <div className="rounded-3xl glass p-12 text-center text-sm text-muted-foreground">No reviews here.</div>
       ) : (
         <div className="space-y-3">
-          {reviews.map((r) => (
+          {reviews.map((r, idx) => (
             <motion.div key={r._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-2xl glass p-5">
               <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="flex gap-0.5">
                       {[1, 2, 3, 4, 5].map((n) => (
                         <Star key={n} className={`h-4 w-4 ${n <= r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40"}`} />
                       ))}
                     </div>
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${statusStyles[r.status]}`}>{r.status}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${statusStyles[r.status]}`}>
+                      {r.status}
+                    </span>
+                    {filterStatus === "approved" && (
+                      <span className="text-xs text-muted-foreground">#{idx + 1}</span>
+                    )}
                   </div>
                   <p className="mt-2 font-semibold">{r.title}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{r.comment}</p>
+                  <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{r.comment}</p>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {r.user?.name ?? "Traveler"} on {r.trip?.title ?? "trip"} · {new Date(r.createdAt).toLocaleDateString("en-IN")}
+                    {r.user?.name ?? "Traveler"} · {r.trip?.title ?? "trip"} · {new Date(r.createdAt).toLocaleDateString("en-IN")}
                   </p>
                 </div>
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+                  {filterStatus === "approved" && (
+                    <div className="flex flex-col gap-1">
+                      <button onClick={() => moveOrder(idx, -1)} disabled={idx === 0 || busy === r._id} title="Move up" className="rounded-lg bg-white/5 p-1.5 transition hover:bg-white/10 disabled:opacity-30">
+                        <ChevronUp className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => moveOrder(idx, 1)} disabled={idx === reviews.length - 1 || busy === r._id} title="Move down" className="rounded-lg bg-white/5 p-1.5 transition hover:bg-white/10 disabled:opacity-30">
+                        <ChevronDown className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
                   {r.status !== "approved" && (
                     <button onClick={() => moderate(r._id, "approved")} disabled={busy === r._id} title="Approve" className="rounded-lg bg-emerald-500/10 p-2 text-emerald-300 transition hover:bg-emerald-500/20 disabled:opacity-50">
                       <Check className="h-4 w-4" />
@@ -118,6 +180,9 @@ export function AdminReviews() {
                       <X className="h-4 w-4" />
                     </button>
                   )}
+                  <button onClick={() => deleteReview(r._id)} disabled={busy === r._id} title="Delete" className="rounded-lg bg-red-500/10 p-2 text-red-400 transition hover:bg-red-500/20 disabled:opacity-50">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             </motion.div>
