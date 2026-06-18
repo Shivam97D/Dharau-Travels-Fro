@@ -28,15 +28,17 @@ export function AdminReviews() {
   const [filterStatus, setFilterStatus] = useState("pending");
   const [busy, setBusy] = useState<string | null>(null);
 
-  const load = async () => {
+  const load = async (status = filterStatus) => {
     try {
       setLoading(true);
       const params: Record<string, string> = {};
-      if (filterStatus) params.status = filterStatus;
+      if (status) params.status = status;
       const res = await api.getAllReviews(params);
       if (res.success) {
-        const sorted = ((res.data as ReviewRow[]) ?? []).sort((a, b) => a.sortOrder - b.sortOrder);
-        setReviews(sorted);
+        const rows = (res.data as ReviewRow[]) ?? [];
+        const seen = new Set<string>();
+        const unique = rows.filter((r) => { if (seen.has(r._id)) return false; seen.add(r._id); return true; });
+        setReviews(unique.sort((a, b) => a.sortOrder - b.sortOrder));
       }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to load reviews");
@@ -45,18 +47,14 @@ export function AdminReviews() {
     }
   };
 
-  useEffect(() => { load(); }, [filterStatus]);
+  useEffect(() => { load(filterStatus); }, [filterStatus]);
 
   const moderate = async (id: string, status: string) => {
     setBusy(id);
     try {
       await api.updateReviewStatus(id, status);
       toast.success(`Review ${status}`);
-      setReviews((prev) =>
-        filterStatus && filterStatus !== status
-          ? prev.filter((r) => r._id !== id)
-          : prev.map((r) => (r._id === id ? { ...r, status } : r)),
-      );
+      await load();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Update failed");
     } finally {
@@ -70,7 +68,7 @@ export function AdminReviews() {
     try {
       await api.deleteReview(id);
       toast.success("Review deleted");
-      setReviews((prev) => prev.filter((r) => r._id !== id));
+      await load();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Delete failed");
     } finally {
@@ -97,7 +95,7 @@ export function AdminReviews() {
       ]);
     } catch {
       toast.error("Could not save order");
-      load();
+      load(filterStatus);
     }
   };
 
