@@ -18,6 +18,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
   const [sent, setSent] = useState(false);
   const [devResetLink, setDevResetLink] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [wakingUp, setWakingUp] = useState(false);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const { login, register, refreshUser } = useAuth();
 
@@ -78,6 +79,8 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
     e.preventDefault();
     setError("");
     setLoading(true);
+    setWakingUp(false);
+    api.onWakingUp = () => setWakingUp(true);
 
     try {
       if (mode === "login") {
@@ -112,6 +115,8 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
+      setWakingUp(false);
+      api.onWakingUp = undefined;
     }
   };
 
@@ -171,6 +176,18 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                 >
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   {error}
+                </motion.div>
+              )}
+
+              {/* Server cold-start notice */}
+              {wakingUp && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 flex items-center gap-2 rounded-xl bg-blue-500/10 px-3 py-2 text-sm text-blue-400"
+                >
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                  Server is starting up, please wait a moment…
                 </motion.div>
               )}
 

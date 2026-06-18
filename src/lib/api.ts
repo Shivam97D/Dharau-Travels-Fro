@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL || "/api";
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 interface ApiResponse<T> {
   success: boolean;
@@ -40,7 +42,9 @@ class ApiClient {
     }
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+  onWakingUp?: (attempt: number) => void;
+
+  private async request<T>(endpoint: string, options: RequestInit = {}, attempt = 1): Promise<ApiResponse<T>> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(options.headers as Record<string, string>),
@@ -58,6 +62,13 @@ class ApiClient {
       });
     } catch {
       throw new Error("Cannot reach the server. Please check your connection.");
+    }
+
+    // Render free-tier cold start: retry up to 2 more times on 504
+    if (response.status === 504 && attempt <= 2) {
+      this.onWakingUp?.(attempt);
+      await sleep(6000);
+      return this.request<T>(endpoint, options, attempt + 1);
     }
 
     let data: ApiResponse<T>;
