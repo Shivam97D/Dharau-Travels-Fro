@@ -172,6 +172,18 @@ class ApiClient {
     return this.get(`/reviews/trip/${tripId}`);
   }
 
+  async getHomeReviews() {
+    return this.get("/reviews");
+  }
+
+  async setReviewOrder(id: string, sortOrder: number) {
+    return this.put(`/reviews/${id}/order`, { sortOrder });
+  }
+
+  async verifyEmail(token: string) {
+    return this.get(`/auth/verify-email/${token}`);
+  }
+
   async createInquiry(inquiryData: any) {
     return this.post("/inquiries", inquiryData);
   }
@@ -237,6 +249,10 @@ class ApiClient {
     return this.delete(`/admin/users/${id}`);
   }
 
+  async adminResetPassword(id: string, password: string) {
+    return this.put(`/admin/users/${id}/reset-password`, { password });
+  }
+
   async getAllReviews(params?: Record<string, any>) {
     const queryString = params ? "?" + new URLSearchParams(params).toString() : "";
     return this.get(`/admin/reviews${queryString}`);
@@ -244,6 +260,10 @@ class ApiClient {
 
   async updateReviewStatus(id: string, status: string) {
     return this.put(`/admin/reviews/${id}/status`, { status });
+  }
+
+  async deleteReview(id: string) {
+    return this.delete(`/reviews/${id}`);
   }
 
   async getTripAnalytics(id: string) {

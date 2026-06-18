@@ -1,13 +1,26 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Search, Sparkles, MapPin, Calendar, Users, Star } from "lucide-react";
-import heroImg from "@/assets/hero-bali.jpg";
 import maldivesImg from "@/assets/dest-maldives.jpg";
 import santoriniImg from "@/assets/dest-santorini.jpg";
 import swissImg from "@/assets/dest-swiss.jpg";
 
+const HERO_VIDEOS = [
+  "/videos/hero1.mp4",
+  "/videos/hero2.mp4",
+  "/videos/hero3.mp4",
+  "/videos/hero4.mp4",
+  "/videos/hero5.mp4",
+  "/videos/hero6.mp4",
+];
+
+const CYCLE_MS = 4000;
+
 export function Hero() {
   const ref = useRef<HTMLDivElement>(null);
+  const [current, setCurrent] = useState(0);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"],
@@ -16,17 +29,43 @@ export function Hero() {
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % HERO_VIDEOS.length);
+    }, CYCLE_MS);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const vid = videoRefs.current[current];
+    if (vid) {
+      vid.currentTime = 0;
+      vid.play().catch(() => {});
+    }
+  }, [current]);
+
   return (
     <section ref={ref} className="relative min-h-[100svh] w-full overflow-hidden">
-      {/* Parallax background */}
+      {/* Parallax video background */}
       <motion.div style={{ y, scale }} className="absolute inset-0 -z-10">
-        <img
-          src={heroImg}
-          alt="Tropical Bali sunset paradise"
-          className="h-full w-full object-cover"
-          width={1920}
-          height={1080}
-        />
+        <div className="relative h-full w-full">
+          {HERO_VIDEOS.map((src, i) => (
+            <motion.video
+              key={src}
+              ref={(el) => { videoRefs.current[i] = el; }}
+              src={src}
+              muted
+              playsInline
+              loop
+              autoPlay={i === 0}
+              preload={i < 2 ? "auto" : "none"}
+              className="absolute inset-0 h-full w-full object-cover"
+              initial={false}
+              animate={{ opacity: i === current ? 1 : 0 }}
+              transition={{ duration: 1.4, ease: "easeInOut" }}
+            />
+          ))}
+        </div>
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-background" />
         <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 via-transparent to-secondary/20 mix-blend-overlay" />
       </motion.div>

@@ -1,87 +1,45 @@
-import { motion, useInView } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import { Compass, Wallet, Headphones, ShieldCheck, BedDouble, Plane } from "lucide-react";
+import { motion } from "framer-motion";
+import { Wallet, Users2, MapPin, UserCheck, ShieldCheck, Route } from "lucide-react";
 import { SectionHeader } from "./Section";
 
 const features = [
   {
-    icon: Compass,
-    title: "Custom itineraries",
-    desc: "Designed around you, not a brochure.",
+    icon: Wallet,
+    title: "Budget-friendly trips",
+    desc: "Real adventures that don't drain your wallet. We negotiate hard so you don't have to.",
     color: "gradient-sunset",
   },
   {
-    icon: Wallet,
-    title: "Smart budgeting",
-    desc: "Transparent pricing. No hidden fees, ever.",
+    icon: Users2,
+    title: "Meet new friends",
+    desc: "Travel solo, leave with a squad. Our group tours are designed to forge real connections.",
     color: "gradient-ocean",
   },
   {
-    icon: Headphones,
-    title: "24/7 humans",
-    desc: "Real travel concierge — not a chatbot.",
+    icon: MapPin,
+    title: "Native management",
+    desc: "Every destination is managed by locals who grew up there — no tourist-trap itineraries.",
     color: "gradient-tropic",
   },
   {
-    icon: BedDouble,
-    title: "Verified stays",
-    desc: "Every villa, vetted in person.",
+    icon: UserCheck,
+    title: "Trained guides",
+    desc: "Certified, experienced guides who know the terrain, the culture, and how to keep you safe.",
     color: "gradient-aurora",
   },
   {
     icon: ShieldCheck,
-    title: "Safe travel",
-    desc: "Insurance, support, and peace of mind.",
+    title: "Safe & trusted",
+    desc: "Vetted stays, emergency support, and a team reachable 24/7 — because peace of mind matters.",
     color: "gradient-sunset",
   },
   {
-    icon: Plane,
-    title: "120+ countries",
-    desc: "From hidden hamlets to icon cities.",
+    icon: Route,
+    title: "Custom routes",
+    desc: "Tell us your dream. We'll map the route, handle the logistics, and make it happen.",
     color: "gradient-ocean",
   },
 ];
-
-const stats = [
-  { value: 50000, suffix: "+", label: "Happy travelers" },
-  { value: 120, suffix: "+", label: "Countries" },
-  { value: 4.9, label: "Average rating", decimals: 1 },
-  { value: 24, suffix: "/7", label: "Concierge" },
-];
-
-function Counter({
-  value,
-  suffix = "",
-  decimals = 0,
-}: {
-  value: number;
-  suffix?: string;
-  decimals?: number;
-}) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-50px" });
-  const [n, setN] = useState(0);
-
-  useEffect(() => {
-    if (!inView) return;
-    let start: number | null = null;
-    const dur = 1500;
-    const step = (t: number) => {
-      if (start === null) start = t;
-      const p = Math.min((t - start) / dur, 1);
-      setN(value * (1 - Math.pow(1 - p, 3)));
-      if (p < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [inView, value]);
-
-  return (
-    <span ref={ref}>
-      {n.toFixed(decimals)}
-      {suffix}
-    </span>
-  );
-}
 
 export function WhyUs() {
   return (
@@ -95,7 +53,7 @@ export function WhyUs() {
               Travel that actually <span className="italic text-gradient-sunset">feels good</span>
             </>
           }
-          subtitle="Six promises we obsess over so you can switch off and just be there."
+          subtitle="Six things we obsess over so you can switch off and just be there."
         />
 
         <div className="mt-16 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -125,20 +83,6 @@ export function WhyUs() {
             );
           })}
         </div>
-
-        {/* Stats - Hidden for preview */}
-        {/* <div className="mt-16 grid grid-cols-2 gap-4 rounded-3xl glass p-6 shadow-float sm:grid-cols-4 sm:p-8">
-          {stats.map((s) => (
-            <div key={s.label} className="text-center">
-              <div className="text-3xl font-bold tracking-tight text-gradient-sunset sm:text-5xl">
-                <Counter value={s.value} suffix={s.suffix} decimals={s.decimals ?? 0} />
-              </div>
-              <div className="mt-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {s.label}
-              </div>
-            </div>
-          ))}
-        </div> */}
       </div>
     </section>
   );

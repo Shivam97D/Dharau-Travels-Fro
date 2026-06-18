@@ -15,6 +15,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VerifyEmailTokenRouteImport } from './routes/verify-email.$token'
 import { Route as TripsSlugRouteImport } from './routes/trips.$slug'
 import { Route as ResetPasswordTokenRouteImport } from './routes/reset-password.$token'
 
@@ -48,6 +49,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VerifyEmailTokenRoute = VerifyEmailTokenRouteImport.update({
+  id: '/verify-email/$token',
+  path: '/verify-email/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TripsSlugRoute = TripsSlugRouteImport.update({
   id: '/trips/$slug',
   path: '/trips/$slug',
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/reset-password/$token': typeof ResetPasswordTokenRoute
   '/trips/$slug': typeof TripsSlugRoute
+  '/verify-email/$token': typeof VerifyEmailTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/reset-password/$token': typeof ResetPasswordTokenRoute
   '/trips/$slug': typeof TripsSlugRoute
+  '/verify-email/$token': typeof VerifyEmailTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/reset-password/$token': typeof ResetPasswordTokenRoute
   '/trips/$slug': typeof TripsSlugRoute
+  '/verify-email/$token': typeof VerifyEmailTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/reset-password/$token'
     | '/trips/$slug'
+    | '/verify-email/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/reset-password/$token'
     | '/trips/$slug'
+    | '/verify-email/$token'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/reset-password/$token'
     | '/trips/$slug'
+    | '/verify-email/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   ResetPasswordTokenRoute: typeof ResetPasswordTokenRoute
   TripsSlugRoute: typeof TripsSlugRoute
+  VerifyEmailTokenRoute: typeof VerifyEmailTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/verify-email/$token': {
+      id: '/verify-email/$token'
+      path: '/verify-email/$token'
+      fullPath: '/verify-email/$token'
+      preLoaderRoute: typeof VerifyEmailTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/trips/$slug': {
       id: '/trips/$slug'
       path: '/trips/$slug'
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   ResetPasswordTokenRoute: ResetPasswordTokenRoute,
   TripsSlugRoute: TripsSlugRoute,
+  VerifyEmailTokenRoute: VerifyEmailTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

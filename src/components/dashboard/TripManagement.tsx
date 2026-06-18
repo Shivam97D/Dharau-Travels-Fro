@@ -12,7 +12,7 @@ const mockTrips: Trip[] = [
       "Immerse yourself in the spiritual heart of Bali with curated wellness experiences.",
     destination: "Bali",
     country: "Indonesia",
-    category: "Wellness",
+    categories: ["group-tour"],
     duration: { days: 7, nights: 6 },
     price: { amount: 2490, currency: "USD", originalPrice: 2890, discount: 400 },
     images: [
@@ -41,7 +41,7 @@ const mockTrips: Trip[] = [
     description: "Snow-capped luxury stay in the heart of the Alps with private heli tours.",
     destination: "Zermatt",
     country: "Switzerland",
-    category: "Luxury",
+    categories: ["solo"],
     duration: { days: 5, nights: 4 },
     price: { amount: 4290, currency: "USD" },
     images: [{ url: "/uploads/swiss-1.jpg", caption: "Matterhorn Views", isPrimary: true }],
@@ -67,7 +67,7 @@ const mockTrips: Trip[] = [
     description: "Ultra-modern culinary and culture tour through Tokyo's hidden gems.",
     destination: "Tokyo",
     country: "Japan",
-    category: "Urban",
+    categories: ["group-tour", "solo"],
     duration: { days: 6, nights: 5 },
     price: { amount: 3190, currency: "USD", discount: 200 },
     images: [{ url: "/uploads/tokyo-1.jpg", caption: "Shinjuku Skyline", isPrimary: true }],
@@ -233,7 +233,7 @@ export function TripManagement() {
                 </div>
                 <div className="col-span-2">
                   <span className="rounded-full bg-white/10 px-3 py-1 text-xs capitalize text-foreground/80">
-                    {trip.category}
+                    {(trip.categories ?? []).join(", ")}
                   </span>
                 </div>
                 <div className="col-span-2 text-xs text-foreground/80">
