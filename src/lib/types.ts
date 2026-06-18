@@ -19,7 +19,7 @@ export interface Trip {
   description: string;
   destination: string;
   country: string;
-  category: string;
+  categories: string[];
   duration: {
     days: number;
     nights: number;

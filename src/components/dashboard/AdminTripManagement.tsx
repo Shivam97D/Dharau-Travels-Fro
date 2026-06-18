@@ -28,7 +28,7 @@ interface TripFormData {
   description: string;
   destination: string;
   country: string;
-  category: string;
+  categories: string[];
   duration: { days: number; nights: number };
   price: { amount: number; currency: string; originalPrice?: number; discount?: number };
   maxGroupSize: number;
@@ -50,7 +50,7 @@ const EMPTY_FORM: TripFormData = {
   description: "",
   destination: "",
   country: "",
-  category: "adventure",
+  categories: ["adventure"],
   duration: { days: 7, nights: 6 },
   price: { amount: 0, currency: "INR", originalPrice: undefined, discount: undefined },
   maxGroupSize: 15,
@@ -167,7 +167,7 @@ export function AdminTripManagement() {
       description: trip.description,
       destination: trip.destination,
       country: trip.country,
-      category: trip.category,
+      categories: trip.categories ?? [],
       duration: trip.duration,
       price: trip.price,
       maxGroupSize: trip.maxGroupSize,
@@ -241,12 +241,11 @@ export function AdminTripManagement() {
           className="rounded-2xl bg-white/5 px-4 py-2 text-sm outline-none transition focus:bg-white/10"
         >
           <option value="">All Categories</option>
+          <option value="group-tour">Group Tour</option>
+          <option value="solo">Solo</option>
+          <option value="trekking">Trekking</option>
+          <option value="camping">Camping</option>
           <option value="adventure">Adventure</option>
-          <option value="luxury">Luxury</option>
-          <option value="beach">Beach</option>
-          <option value="mountain">Mountain</option>
-          <option value="city">City</option>
-          <option value="cultural">Cultural</option>
         </select>
 
         <select
@@ -320,9 +319,13 @@ export function AdminTripManagement() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="rounded-full bg-white/10 px-3 py-1 text-xs capitalize">
-                        {trip.category}
-                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {(trip.categories ?? []).map((c) => (
+                          <span key={c} className="rounded-full bg-white/10 px-2 py-0.5 text-xs capitalize">
+                            {c}
+                          </span>
+                        ))}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <p className="font-medium">₹{trip.price.amount.toLocaleString("en-IN")}</p>
@@ -444,19 +447,29 @@ export function AdminTripManagement() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium">Category</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full rounded-2xl bg-white/5 px-4 py-2 outline-none transition focus:bg-white/10"
-                  >
-                    <option value="adventure">Adventure</option>
-                    <option value="luxury">Luxury</option>
-                    <option value="beach">Beach</option>
-                    <option value="mountain">Mountain</option>
-                    <option value="city">City</option>
-                    <option value="cultural">Cultural</option>
-                  </select>
+                  <label className="mb-2 block text-sm font-medium">Categories (select all that apply)</label>
+                  <div className="flex flex-wrap gap-2 rounded-2xl bg-white/5 px-4 py-3">
+                    {(["group-tour", "solo", "trekking", "camping", "adventure"] as const).map((cat) => {
+                      const checked = formData.categories.includes(cat);
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => {
+                            const next = checked
+                              ? formData.categories.filter((c) => c !== cat)
+                              : [...formData.categories, cat];
+                            setFormData({ ...formData, categories: next });
+                          }}
+                          className={`rounded-full px-3 py-1 text-xs font-medium capitalize transition ${
+                            checked ? "gradient-sunset text-white shadow-glow" : "bg-white/10 hover:bg-white/20"
+                          }`}
+                        >
+                          {cat.replace("-", " ")}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div>
