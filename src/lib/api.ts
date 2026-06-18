@@ -50,12 +50,23 @@ class ApiClient {
       headers["Authorization"] = `Bearer ${this.token}`;
     }
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${this.baseUrl}${endpoint}`, {
+        ...options,
+        headers,
+      });
+    } catch {
+      throw new Error("Cannot reach the server. Please check your connection.");
+    }
 
-    const data = await response.json();
+    let data: ApiResponse<T>;
+    try {
+      data = await response.json();
+    } catch {
+      if (!response.ok) throw new Error(`Server error (${response.status})`);
+      throw new Error("Invalid response from server.");
+    }
 
     if (!response.ok) {
       throw new Error(data.message || "Something went wrong");
