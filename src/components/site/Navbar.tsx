@@ -111,7 +111,7 @@ export function Navbar({ onLogin }: { onLogin?: () => void }) {
                 <button
                   onClick={handleLogout}
                   title="Sign out"
-                  className="hidden h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 text-foreground/60 backdrop-blur-sm transition hover:scale-105 hover:border-white/25 hover:text-foreground sm:grid"
+                  className="hidden h-9 w-9 place-items-center rounded-full border border-red-500/30 bg-red-500/10 text-red-400 backdrop-blur-sm transition hover:scale-105 hover:bg-red-500/20 hover:text-red-300 sm:grid"
                 >
                   <LogOut className="h-4 w-4" />
                 </button>
@@ -192,7 +192,7 @@ export function Navbar({ onLogin }: { onLogin?: () => void }) {
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium hover:bg-white/40"
+                      className="flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300"
                     >
                       <LogOut className="h-4 w-4" />
                       Sign Out

@@ -1,9 +1,6 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import { Search, Sparkles, MapPin, Calendar, Users, Star } from "lucide-react";
-import maldivesImg from "@/assets/dest-maldives.jpg";
-import santoriniImg from "@/assets/dest-santorini.jpg";
-import swissImg from "@/assets/dest-swiss.jpg";
 
 const HERO_VIDEOS = [
   "/videos/hero1.mp4",
@@ -192,30 +189,6 @@ export function Hero() {
         </motion.div>
       </motion.div>
 
-      {/* Floating destination cards */}
-      <FloatingCard
-        img={maldivesImg}
-        name="Maldives"
-        rating="4.9"
-        className="left-4 top-1/4 hidden w-44 lg:block"
-        delay={1}
-      />
-      <FloatingCard
-        img={santoriniImg}
-        name="Santorini"
-        rating="4.8"
-        className="right-6 top-[28%] hidden w-48 xl:block"
-        delay={1.3}
-        rotate={6}
-      />
-      <FloatingCard
-        img={swissImg}
-        name="Swiss Alps"
-        rating="4.9"
-        className="right-10 bottom-32 hidden w-44 lg:block"
-        delay={1.6}
-        rotate={-4}
-      />
     </section>
   );
 }
