@@ -44,7 +44,7 @@ export function Navbar({ onLogin }: { onLogin?: () => void }) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div
           className={`flex items-center justify-between rounded-full px-4 py-2.5 transition-all duration-500 ${
-            scrolled ? "glass shadow-soft" : "bg-transparent"
+            scrolled ? "glass-nav" : "bg-transparent"
           }`}
         >
           <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold">

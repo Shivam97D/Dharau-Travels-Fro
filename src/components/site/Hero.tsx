@@ -80,16 +80,6 @@ export function Hero() {
         style={{ opacity }}
         className="relative mx-auto flex min-h-[100svh] max-w-7xl flex-col items-center justify-center px-4 pt-32 pb-24 sm:px-6"
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.8 }}
-          className="inline-flex items-center gap-2 rounded-full glass-dark px-4 py-1.5 text-xs font-medium text-white"
-        >
-          <Sparkles className="h-3.5 w-3.5 text-amber-glow" />
-          Curated journeys for the wildly curious
-        </motion.div>
-
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}

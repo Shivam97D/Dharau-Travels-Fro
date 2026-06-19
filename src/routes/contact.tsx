@@ -43,7 +43,7 @@ const contactCards = [
     title: "Our office",
     value: "Siddhi Apartment, Polyhub",
     sub: "Vadgaon, Pune — 411041",
-    href: "https://maps.google.com/?q=Vadgaon+Pune",
+    href: "https://maps.app.goo.gl/8tAmJd67CAo74kMe9",
     color: "from-orange-500/20 to-amber-500/10",
   },
   {
@@ -159,7 +159,7 @@ function ContactPage() {
               </div>
               <div>
                 <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{card.title}</div>
-                <div className="mt-1 font-semibold text-foreground group-hover:text-primary transition">{card.value}</div>
+                <div className="mt-1 break-all font-semibold text-foreground group-hover:text-primary transition">{card.value}</div>
                 <div className="mt-0.5 text-xs text-muted-foreground">{card.sub}</div>
               </div>
             </motion.a>
