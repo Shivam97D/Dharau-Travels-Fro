@@ -10,10 +10,16 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SustainabilityRouteImport } from './routes/sustainability'
+import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CareersRouteImport } from './routes/careers'
+import { Route as BookingPolicyRouteImport } from './routes/booking-policy'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VerifyEmailTokenRouteImport } from './routes/verify-email.$token'
 import { Route as TripsSlugRouteImport } from './routes/trips.$slug'
@@ -22,6 +28,16 @@ import { Route as ResetPasswordTokenRouteImport } from './routes/reset-password.
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SustainabilityRoute = SustainabilityRouteImport.update({
+  id: '/sustainability',
+  path: '/sustainability',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafetyRoute = SafetyRouteImport.update({
+  id: '/safety',
+  path: '/safety',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -39,9 +55,29 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersRoute = CareersRouteImport.update({
+  id: '/careers',
+  path: '/careers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookingPolicyRoute = BookingPolicyRouteImport.update({
+  id: '/booking-policy',
+  path: '/booking-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -67,10 +103,16 @@ const ResetPasswordTokenRoute = ResetPasswordTokenRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/booking-policy': typeof BookingPolicyRoute
+  '/careers': typeof CareersRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/safety': typeof SafetyRoute
+  '/sustainability': typeof SustainabilityRoute
   '/terms': typeof TermsRoute
   '/reset-password/$token': typeof ResetPasswordTokenRoute
   '/trips/$slug': typeof TripsSlugRoute
@@ -78,10 +120,16 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/booking-policy': typeof BookingPolicyRoute
+  '/careers': typeof CareersRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/safety': typeof SafetyRoute
+  '/sustainability': typeof SustainabilityRoute
   '/terms': typeof TermsRoute
   '/reset-password/$token': typeof ResetPasswordTokenRoute
   '/trips/$slug': typeof TripsSlugRoute
@@ -90,10 +138,16 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/booking-policy': typeof BookingPolicyRoute
+  '/careers': typeof CareersRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/safety': typeof SafetyRoute
+  '/sustainability': typeof SustainabilityRoute
   '/terms': typeof TermsRoute
   '/reset-password/$token': typeof ResetPasswordTokenRoute
   '/trips/$slug': typeof TripsSlugRoute
@@ -103,10 +157,16 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/admin'
+    | '/booking-policy'
+    | '/careers'
+    | '/contact'
     | '/dashboard'
     | '/privacy'
     | '/profile'
+    | '/safety'
+    | '/sustainability'
     | '/terms'
     | '/reset-password/$token'
     | '/trips/$slug'
@@ -114,10 +174,16 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/admin'
+    | '/booking-policy'
+    | '/careers'
+    | '/contact'
     | '/dashboard'
     | '/privacy'
     | '/profile'
+    | '/safety'
+    | '/sustainability'
     | '/terms'
     | '/reset-password/$token'
     | '/trips/$slug'
@@ -125,10 +191,16 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/admin'
+    | '/booking-policy'
+    | '/careers'
+    | '/contact'
     | '/dashboard'
     | '/privacy'
     | '/profile'
+    | '/safety'
+    | '/sustainability'
     | '/terms'
     | '/reset-password/$token'
     | '/trips/$slug'
@@ -137,10 +209,16 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
+  BookingPolicyRoute: typeof BookingPolicyRoute
+  CareersRoute: typeof CareersRoute
+  ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
+  SafetyRoute: typeof SafetyRoute
+  SustainabilityRoute: typeof SustainabilityRoute
   TermsRoute: typeof TermsRoute
   ResetPasswordTokenRoute: typeof ResetPasswordTokenRoute
   TripsSlugRoute: typeof TripsSlugRoute
@@ -154,6 +232,20 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sustainability': {
+      id: '/sustainability'
+      path: '/sustainability'
+      fullPath: '/sustainability'
+      preLoaderRoute: typeof SustainabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safety': {
+      id: '/safety'
+      path: '/safety'
+      fullPath: '/safety'
+      preLoaderRoute: typeof SafetyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -177,11 +269,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers': {
+      id: '/careers'
+      path: '/careers'
+      fullPath: '/careers'
+      preLoaderRoute: typeof CareersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/booking-policy': {
+      id: '/booking-policy'
+      path: '/booking-policy'
+      fullPath: '/booking-policy'
+      preLoaderRoute: typeof BookingPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -217,10 +337,16 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
+  BookingPolicyRoute: BookingPolicyRoute,
+  CareersRoute: CareersRoute,
+  ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
+  SafetyRoute: SafetyRoute,
+  SustainabilityRoute: SustainabilityRoute,
   TermsRoute: TermsRoute,
   ResetPasswordTokenRoute: ResetPasswordTokenRoute,
   TripsSlugRoute: TripsSlugRoute,

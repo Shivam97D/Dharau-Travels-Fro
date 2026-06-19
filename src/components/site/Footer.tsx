@@ -4,10 +4,34 @@ import { Instagram, Mail, Phone, MapPin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
-const sections = [
-  { title: "Explore", links: ["Destinations", "Featured trips", "Categories", "Gallery"] },
-  { title: "Company", links: ["About us", "Careers", "Sustainability"] },
-  { title: "Support", links: ["Contact", "Booking policy", "Safety"] },
+type FooterLink = { label: string; href: string };
+
+const sections: { title: string; links: FooterLink[] }[] = [
+  {
+    title: "Explore",
+    links: [
+      { label: "Destinations", href: "/#destinations" },
+      { label: "Featured trips", href: "/#trips" },
+      { label: "Categories", href: "/#categories" },
+      { label: "Gallery", href: "/#gallery" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About us", href: "/about" },
+      { label: "Careers", href: "/careers" },
+      { label: "Sustainability", href: "/sustainability" },
+    ],
+  },
+  {
+    title: "Support",
+    links: [
+      { label: "Contact", href: "/contact" },
+      { label: "Booking policy", href: "/booking-policy" },
+      { label: "Safety", href: "/safety" },
+    ],
+  },
 ];
 
 export function Footer() {
@@ -37,14 +61,14 @@ export function Footer() {
         <div className="grid gap-12 lg:grid-cols-[1.4fr_2fr_1.4fr]">
           {/* Brand + contact */}
           <div>
-            <a href="#" className="inline-flex items-center gap-2 font-display text-xl font-bold">
+            <Link to="/" className="inline-flex items-center gap-2 font-display text-xl font-bold">
               <img
                 src="/Screenshot_2026-05-26_180910-removebg-preview.png"
                 alt="DHARAVU JOURNEYS"
                 className="h-10 w-10 object-contain"
               />
               DHARAVU JOURNEYS
-            </a>
+            </Link>
             <p className="mt-4 max-w-xs text-sm text-muted-foreground">
               Curated journeys for the wildly curious. Designed by humans, powered by wonder.
             </p>
@@ -84,12 +108,12 @@ export function Footer() {
                 <div className="text-sm font-bold">{s.title}</div>
                 <ul className="mt-4 space-y-2.5">
                   {s.links.map((l) => (
-                    <li key={l}>
+                    <li key={l.label}>
                       <a
-                        href="#"
+                        href={l.href}
                         className="text-sm text-muted-foreground transition hover:text-foreground"
                       >
-                        {l}
+                        {l.label}
                       </a>
                     </li>
                   ))}
