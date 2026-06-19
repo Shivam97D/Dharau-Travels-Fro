@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, X, ChevronDown, Loader2 } from "lucide-react";
+import { Star, X, ChevronDown, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { SectionHeader } from "./Section";
 import { useAuth } from "@/lib/auth-context";
@@ -201,6 +201,11 @@ export function Testimonials() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (dir: "left" | "right") => {
+    scrollRef.current?.scrollBy({ left: dir === "right" ? 360 : -360, behavior: "smooth" });
+  };
 
   const fetchReviews = () => {
     setLoading(true);
@@ -217,8 +222,6 @@ export function Testimonials() {
     setShowModal(true);
   };
 
-  const row = reviews.length > 0 ? [...reviews, ...reviews] : [];
-
   return (
     <>
       <section className="relative overflow-hidden py-24 sm:py-32">
@@ -233,12 +236,28 @@ export function Testimonials() {
               }
               subtitle="Every review is from a traveler who experienced Dharavu firsthand."
             />
-            <button
-              onClick={handleWriteReview}
-              className="shrink-0 self-start rounded-full gradient-sunset px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-105 sm:self-auto"
-            >
-              Write a review
-            </button>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <button
+                onClick={() => scroll("left")}
+                className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card transition hover:bg-muted"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => scroll("right")}
+                className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card transition hover:bg-muted"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+              <button
+                onClick={handleWriteReview}
+                className="rounded-full gradient-sunset px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-105"
+              >
+                Write a review
+              </button>
+            </div>
           </div>
         </div>
 
@@ -257,12 +276,31 @@ export function Testimonials() {
             </button>
           </div>
         ) : (
-          <div className="mt-16 [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
-            <div className="flex w-max gap-5 animate-marquee">
-              {row.map((r, i) => (
-                <ReviewCard key={`${r._id}-${i}`} r={r} />
-              ))}
-            </div>
+          <div
+            ref={scrollRef}
+            className="mt-12 flex gap-5 overflow-x-auto scroll-smooth px-4 pb-4 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            style={{ cursor: "grab" }}
+            onMouseDown={(e) => {
+              const el = scrollRef.current;
+              if (!el) return;
+              el.style.cursor = "grabbing";
+              const startX = e.pageX - el.offsetLeft;
+              const startScroll = el.scrollLeft;
+              const onMove = (ev: MouseEvent) => {
+                el.scrollLeft = startScroll - (ev.pageX - el.offsetLeft - startX);
+              };
+              const onUp = () => {
+                el.style.cursor = "grab";
+                window.removeEventListener("mousemove", onMove);
+                window.removeEventListener("mouseup", onUp);
+              };
+              window.addEventListener("mousemove", onMove);
+              window.addEventListener("mouseup", onUp);
+            }}
+          >
+            {reviews.map((r) => (
+              <ReviewCard key={r._id} r={r} />
+            ))}
           </div>
         )}
       </section>

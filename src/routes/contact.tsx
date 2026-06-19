@@ -122,7 +122,7 @@ function ContactPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="mt-6 flex items-center gap-2 rounded-full glass px-3 py-1.5 text-xs font-semibold text-muted-foreground"
+            className="mt-6 inline-flex items-center gap-2 rounded-full glass px-3 py-1.5 text-xs font-semibold text-muted-foreground"
           >
             <MessageSquare className="h-3.5 w-3.5 text-primary" />
             We'd love to hear from you
