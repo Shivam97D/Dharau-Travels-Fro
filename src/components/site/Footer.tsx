@@ -123,28 +123,28 @@ export function Footer() {
           </div>
 
           {/* Newsletter */}
-          <div className="rounded-3xl glass p-6 shadow-soft">
+          <div className="self-start rounded-3xl glass p-6 shadow-soft">
             <div className="text-sm font-bold">Travel letters, every Friday</div>
-            <p className="mt-2 text-xs text-muted-foreground">
+            <p className="mt-1.5 text-xs text-muted-foreground">
               One destination, one story, zero spam.
             </p>
             <form
               onSubmit={handleSubscribe}
-              className="mt-4 flex items-center gap-2 rounded-full bg-white/70 p-1.5"
+              className="mt-4 flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-sm"
             >
-              <Mail className="ml-3 h-4 w-4 text-muted-foreground" />
+              <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@email.com"
-                className="flex-1 bg-transparent px-2 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                placeholder="Enter your mail@.com"
+                className="min-w-0 flex-1 bg-transparent px-1 py-1.5 text-sm text-foreground outline-none placeholder:text-muted-foreground"
               />
               <button
                 type="submit"
                 disabled={subscribing}
-                className="flex items-center gap-1.5 rounded-full gradient-sunset px-4 py-2 text-xs font-semibold text-primary-foreground shadow-glow transition hover:scale-105 disabled:opacity-50"
+                className="flex shrink-0 items-center gap-1.5 rounded-full gradient-sunset px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow transition hover:scale-105 disabled:opacity-50"
               >
                 {subscribing && <Loader2 className="h-3 w-3 animate-spin" />}
                 Join

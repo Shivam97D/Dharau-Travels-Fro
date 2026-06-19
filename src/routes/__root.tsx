@@ -8,6 +8,7 @@ import {
 import { AuthProvider } from "@/lib/auth-context";
 import { AuthModalProvider } from "@/lib/auth-modal";
 import { Toaster } from "@/components/ui/sonner";
+import { ChatSupport } from "@/components/site/ChatSupport";
 
 function NotFoundComponent() {
   return (
@@ -80,6 +81,7 @@ function RootComponent() {
       <AuthProvider>
         <AuthModalProvider>
           <Outlet />
+          <ChatSupport />
           <Toaster position="top-right" richColors closeButton />
         </AuthModalProvider>
       </AuthProvider>
