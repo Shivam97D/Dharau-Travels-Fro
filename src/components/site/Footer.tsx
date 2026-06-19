@@ -10,7 +10,7 @@ const sections: { title: string; links: FooterLink[] }[] = [
   {
     title: "Explore",
     links: [
-      { label: "Destinations", href: "/#destinations" },
+      { label: "Destinations", href: "/destinations" },
       { label: "Featured trips", href: "/#trips" },
       { label: "Categories", href: "/#categories" },
       { label: "Gallery", href: "/#gallery" },

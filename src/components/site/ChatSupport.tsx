@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Bot, User, ChevronRight } from "lucide-react";
+import { Sparkles, X, Send, Bot, User, ChevronRight } from "lucide-react";
 
 type Message = { role: "bot" | "user"; text: string };
 
@@ -105,22 +105,23 @@ export function ChatSupport() {
       <motion.button
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        transition={{ delay: 1.5, type: "spring", stiffness: 200 }}
+        transition={{ delay: 1.7, type: "spring", stiffness: 200 }}
         onClick={() => setOpen((o) => !o)}
         aria-label="Open travel assistant"
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full gradient-aurora shadow-float transition hover:scale-110"
+        className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 rounded-full gradient-sunset px-5 py-3.5 text-sm font-semibold text-white shadow-glow transition hover:scale-105"
       >
         <AnimatePresence mode="wait" initial={false}>
           {open ? (
             <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
-              <X className="h-5 w-5 text-white" />
+              <X className="h-4 w-4" />
             </motion.span>
           ) : (
             <motion.span key="chat" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}>
-              <MessageCircle className="h-5 w-5 text-white" />
+              <Sparkles className="h-4 w-4" />
             </motion.span>
           )}
         </AnimatePresence>
+        <span className="hidden sm:inline">{open ? "Close" : "Travel Assistant"}</span>
       </motion.button>
 
       {/* Chat panel */}

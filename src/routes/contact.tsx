@@ -104,25 +104,33 @@ function ContactPage() {
         </div>
         <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6">
           <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center gap-3"
+          >
+            <img
+              src="/Screenshot_2026-05-26_180910-removebg-preview.png"
+              alt="Dharavu Journeys"
+              className="h-20 w-20 object-contain drop-shadow-xl"
+            />
+            <div className="text-center">
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">DHARAVU JOURNEYS</h1>
+              <p className="mt-1 text-sm font-medium text-muted-foreground tracking-widest uppercase">Curated Travel Experiences</p>
+            </div>
+          </motion.div>
+          <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 rounded-full glass px-3 py-1.5 text-xs font-semibold text-muted-foreground"
+            transition={{ delay: 0.15 }}
+            className="mt-6 flex items-center gap-2 rounded-full glass px-3 py-1.5 text-xs font-semibold text-muted-foreground"
           >
             <MessageSquare className="h-3.5 w-3.5 text-primary" />
             We'd love to hear from you
           </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-            className="mt-5 text-5xl font-bold tracking-tight sm:text-6xl"
-          >
-            Say <em className="not-italic gradient-text">hello</em>
-          </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
+            transition={{ delay: 0.2 }}
             className="mt-4 text-lg text-muted-foreground"
           >
             Whether you have a wild trip idea, a question, or just want to talk travel

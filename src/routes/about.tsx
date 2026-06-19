@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
-import { Heart, Mountain, Users, Globe, Star, Award } from "lucide-react";
+import { Heart, Mountain, Users, Globe, Star, Award, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/about")({
   component: AboutPage,
@@ -204,6 +204,73 @@ function AboutPage() {
                 <div className="font-bold">{member.name}</div>
                 <div className="text-xs text-primary">{member.role}</div>
                 <p className="mt-2 text-sm text-muted-foreground">{member.bio}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Motive */}
+      <section className="mx-auto max-w-3xl px-4 pb-20 sm:px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="space-y-5 text-base leading-relaxed text-muted-foreground"
+        >
+          <h2 className="text-3xl font-bold text-foreground">Why we do this</h2>
+          <p>
+            India is one of the most geographically and culturally diverse countries on earth.
+            Yet most people experience it through the same ten cities on the same highway routes.
+            We started Dharavu to change that — one carefully designed journey at a time.
+          </p>
+          <p>
+            Our motive is simple: give people access to the real India — the coastlines, the
+            forested ridges, the old forts, the village kitchens. Not as spectators, but as
+            curious, respectful travellers who leave a place better than they found it.
+          </p>
+          <p>
+            We are not a booking platform. We are a team of people who love travel deeply and
+            design every experience the way we'd want to experience it ourselves — with honesty,
+            attention to detail, and genuine care for every person who travels with us.
+          </p>
+        </motion.div>
+      </section>
+
+      {/* Regions we operate in */}
+      <section className="mx-auto max-w-5xl px-4 pb-20 sm:px-6">
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-2 text-3xl font-bold"
+        >
+          Where we operate
+        </motion.h2>
+        <p className="mb-8 text-sm text-muted-foreground">
+          Our current focus is Maharashtra and the surrounding western coast. We know these landscapes personally.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            { place: "Konkan Coast", detail: "Sindhudurg · Ratnagiri · Malvan · Tarkarli" },
+            { place: "Pune & Sahyadris", detail: "Forts · Ghats · Monsoon treks · Camps" },
+            { place: "Mumbai Getaways", detail: "Alibaug · Matheran · Kamshet · Kashid" },
+            { place: "Goa", detail: "Beyond beaches — heritage, nature & culture" },
+            { place: "Western Ghats", detail: "Coorg · Dandeli · Amboli · Radhanagari" },
+            { place: "Expanding soon", detail: "Rajasthan · Northeast India · Sri Lanka" },
+          ].map((r, i) => (
+            <motion.div
+              key={r.place}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.07 }}
+              className="flex items-start gap-3 rounded-2xl glass p-4"
+            >
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <div>
+                <div className="font-semibold text-sm">{r.place}</div>
+                <div className="mt-0.5 text-xs text-muted-foreground">{r.detail}</div>
               </div>
             </motion.div>
           ))}
