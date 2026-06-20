@@ -42,7 +42,7 @@ export function ChatSupport() {
       // Send history (excluding the initial greeting) so Gemini has context
       const history = messages.slice(1);
       const res = await api.sendChatMessage(trimmed, history);
-      const reply = (res.data as { reply: string })?.reply ?? "I ran into a hiccup — please email dharavujourney@gmail.com or call +91 95792 65920!";
+      const reply = (res as unknown as { reply: string }).reply ?? "I ran into a hiccup — please email dharavujourney@gmail.com or call +91 95792 65920!";
       setMessages((prev) => [...prev, { role: "bot", text: reply }]);
     } catch {
       setMessages((prev) => [...prev, { role: "bot", text: "Something went wrong — email dharavujourney@gmail.com or call +91 95792 65920 and we'll help!" }]);
