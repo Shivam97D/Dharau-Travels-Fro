@@ -5,13 +5,14 @@ import {
   Calendar,
   Heart,
   MapPin,
-  Loader2,
+  
   ArrowRight,
   Clock,
   XCircle,
   Settings,
   CreditCard,
 } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -132,7 +133,7 @@ export function UserDashboard() {
 
       {loading ? (
         <div className="flex h-64 items-center justify-center rounded-3xl glass">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <TravelDots />
         </div>
       ) : (
         <>
@@ -206,7 +207,7 @@ export function UserDashboard() {
                             title="Pay now"
                             className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20 disabled:opacity-50"
                           >
-                            {paying === b._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                            {paying === b._id ? <TravelDots /> : <CreditCard className="h-4 w-4" />}
                             Pay now
                           </button>
                         ) : null}
@@ -217,7 +218,7 @@ export function UserDashboard() {
                             title="Cancel booking"
                             className="rounded-lg bg-red-500/10 p-2 text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
                           >
-                            {cancelling === b._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                            {cancelling === b._id ? <TravelDots /> : <XCircle className="h-4 w-4" />}
                           </button>
                         ) : null}
                       </div>
@@ -262,7 +263,7 @@ export function UserDashboard() {
                       className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition hover:bg-red-500/70 disabled:opacity-50"
                     >
                       {unsaving === t._id
-                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                        ? <TravelDots />
                         : <XCircle className="h-4 w-4" />}
                     </button>
                   </div>

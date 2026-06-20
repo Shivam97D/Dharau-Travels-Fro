@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Clock, Users, Check, ChevronLeft, ChevronRight, Flame, Loader2, ArrowRight } from "lucide-react";
+import { Clock, Users, Check, ChevronLeft, ChevronRight, Flame, ArrowRight } from "lucide-react";
+import { TravelLoader } from "@/components/ui/TravelLoader";
 import { Link } from "@tanstack/react-router";
 import { SectionHeader } from "./Section";
 import api from "@/lib/api";
@@ -73,7 +74,7 @@ export function FeaturedTrips() {
 
         {loading ? (
           <div className="flex h-64 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <TravelLoader label="Finding great trips…" />
           </div>
         ) : trips.length === 0 ? (
           <div className="flex h-64 items-center justify-center rounded-3xl glass">

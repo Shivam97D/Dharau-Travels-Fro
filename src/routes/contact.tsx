@@ -2,13 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Mail, Phone, MapPin, Send, Loader2, CheckCircle2, Instagram,
+  Mail, Phone, MapPin, Send, CheckCircle2, Instagram,
   Clock, MessageSquare, Globe,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import api from "@/lib/api";
+import { TravelDots } from "@/components/ui/TravelLoader";
 
 export const Route = createFileRoute("/contact")({
   component: ContactPage,
@@ -330,7 +331,7 @@ function ContactPage() {
                   disabled={submitting}
                   className="flex w-full items-center justify-center gap-2 rounded-full gradient-sunset py-3 text-sm font-bold text-white shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
                 >
-                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  {submitting ? <TravelDots /> : <Send className="h-4 w-4" />}
                   {submitting ? "Sending…" : "Send message"}
                 </button>
               </form>

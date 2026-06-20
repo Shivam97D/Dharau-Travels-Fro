@@ -12,12 +12,13 @@ import {
   BedDouble,
   Calendar,
   Shield,
-  Loader2,
+  
   ArrowLeft,
   IndianRupee,
   Zap,
   Heart,
 } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -195,7 +196,7 @@ export function TripDetail({ slug }: { slug: string }) {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <TravelDots />
       </div>
     );
   }

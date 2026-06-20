@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Mail, Phone, MapPin, Camera, Save, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { User, Mail, Phone, MapPin, Camera, Save, Lock, Eye, EyeOff } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import api from "@/lib/api";
@@ -208,7 +209,7 @@ export function ProfilePage() {
             disabled={saving}
             className="flex items-center gap-2 rounded-2xl gradient-sunset px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {saving ? <TravelDots /> : <Save className="h-4 w-4" />}
             Save Changes
           </button>
         </div>
@@ -256,7 +257,7 @@ export function ProfilePage() {
             className="flex items-center gap-2 rounded-2xl gradient-ocean px-6 py-3 text-sm font-semibold text-white shadow-glow transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {changingPassword ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <TravelDots />
             ) : (
               <Lock className="h-4 w-4" />
             )}

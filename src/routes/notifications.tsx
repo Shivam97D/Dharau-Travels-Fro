@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, CheckCheck, Trash2, X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Bell, CheckCheck, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { TravelLoader } from "@/components/ui/TravelLoader";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { useNotifications, type Notification } from "@/hooks/useNotifications";
@@ -176,7 +177,7 @@ function NotificationsPage() {
         {/* List */}
         {loading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <TravelLoader label="Loading notifications…" />
           </div>
         ) : notifications.length === 0 ? (
           <motion.div

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, MapPin, Calendar, Check, X, CreditCard, Download, Search } from "lucide-react";
+import {  MapPin, Calendar, Check, X, CreditCard, Download, Search } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import type { Booking, Trip } from "@/lib/types";
@@ -118,7 +119,7 @@ export function AdminBookings() {
             disabled={exporting}
             className="inline-flex items-center justify-center gap-2 rounded-2xl gradient-sunset px-4 py-2 text-sm font-semibold text-white shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
           >
-            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            {exporting ? <TravelDots /> : <Download className="h-4 w-4" />}
             Export CSV
           </button>
         </div>
@@ -174,7 +175,7 @@ export function AdminBookings() {
 
       {loading ? (
         <div className="flex justify-center rounded-3xl glass p-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <TravelLoader />
         </div>
       ) : bookings.length === 0 ? (
         <div className="rounded-3xl glass p-12 text-center text-sm text-muted-foreground">No bookings found.</div>

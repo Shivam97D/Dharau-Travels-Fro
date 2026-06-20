@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, X, ChevronDown, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, X, ChevronDown,  ChevronLeft, ChevronRight } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { toast } from "sonner";
 import { SectionHeader } from "./Section";
 import { useAuth } from "@/lib/auth-context";
@@ -124,7 +125,7 @@ function WriteReviewModal({ onClose, onSubmit }: { onClose: () => void; onSubmit
               <div className="relative">
                 {loadingTrips ? (
                   <div className="flex items-center gap-2 rounded-2xl bg-muted/40 px-4 py-2.5 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Loading trips…
+                    <TravelDots /> Loading trips…
                   </div>
                 ) : (
                   <select
@@ -185,7 +186,7 @@ function WriteReviewModal({ onClose, onSubmit }: { onClose: () => void; onSubmit
               disabled={loading}
               className="flex w-full items-center justify-center gap-2 rounded-2xl gradient-sunset py-3 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
             >
-              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {loading && <TravelDots />}
               Submit review
             </button>
           </form>
@@ -263,7 +264,7 @@ export function Testimonials() {
 
         {loading ? (
           <div className="mt-16 flex justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <TravelLoader />
           </div>
         ) : reviews.length === 0 ? (
           <div className="mt-16 text-center">

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Sparkles, Loader2, Send } from "lucide-react";
+import { X, Sparkles,  Send } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -105,7 +106,7 @@ export function InquiryModal({ open, onClose }: { open: boolean; onClose: () => 
                 disabled={submitting}
                 className="flex w-full items-center justify-center gap-2 rounded-full gradient-sunset py-3 text-sm font-bold text-white shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
               >
-                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {submitting ? <TravelDots /> : <Send className="h-4 w-4" />}
                 {submitting ? "Sending…" : "Send my request"}
               </button>
             </form>

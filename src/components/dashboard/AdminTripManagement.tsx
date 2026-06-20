@@ -17,8 +17,9 @@ import {
   TrendingUp,
   X,
   Save,
-  Loader2,
+  
 } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import type { Trip } from "@/lib/types";
@@ -265,7 +266,7 @@ export function AdminTripManagement() {
 
       {loading ? (
         <div className="flex items-center justify-center rounded-3xl glass p-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <TravelLoader />
         </div>
       ) : (
         <div className="rounded-3xl glass overflow-hidden">
@@ -641,7 +642,7 @@ export function AdminTripManagement() {
                         disabled={uploading}
                         className="flex items-center gap-2 rounded-2xl border border-border bg-white/5 px-4 py-2 text-sm transition hover:bg-white/10 disabled:opacity-50"
                       >
-                        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                        {uploading ? <TravelDots /> : <Upload className="h-4 w-4" />}
                         {uploading ? "Uploading…" : "Upload from device"}
                       </button>
                       <span className="text-xs text-muted-foreground">or paste URLs below</span>
@@ -732,7 +733,7 @@ export function AdminTripManagement() {
                 >
                   {submitting ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <TravelDots />
                       Saving...
                     </>
                   ) : (

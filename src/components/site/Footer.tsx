@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Instagram, Mail, Phone, MapPin, Loader2 } from "lucide-react";
+import { Instagram, Mail, Phone, MapPin } from "lucide-react";
+import { TravelDots } from "@/components/ui/TravelLoader";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -146,8 +147,7 @@ export function Footer() {
                 disabled={subscribing}
                 className="flex shrink-0 items-center gap-1.5 rounded-full gradient-sunset px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow transition hover:scale-105 disabled:opacity-50"
               >
-                {subscribing && <Loader2 className="h-3 w-3 animate-spin" />}
-                Join
+                {subscribing ? <TravelDots /> : "Join"}
               </button>
             </form>
           </div>

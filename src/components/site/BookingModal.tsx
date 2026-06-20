@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Minus, Plus, Loader2, Calendar, ShieldCheck, LogIn, CreditCard } from "lucide-react";
+import { X, Minus, Plus, Calendar, ShieldCheck, LogIn, CreditCard } from "lucide-react";
+import { TravelDots } from "@/components/ui/TravelLoader";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -268,7 +269,7 @@ export function BookingModal({
                   disabled={submitting !== null}
                   className="mt-5 flex w-full items-center justify-center gap-2 rounded-full gradient-sunset py-3 text-sm font-bold text-white shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
                 >
-                  {submitting === "pay" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                  {submitting === "pay" ? <TravelDots /> : <CreditCard className="h-4 w-4" />}
                   {submitting === "pay" ? "Opening payment…" : `Pay & confirm · ${formatINR(total)}`}
                 </button>
                 <button
@@ -276,7 +277,7 @@ export function BookingModal({
                   disabled={submitting !== null}
                   className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 py-3 text-sm font-semibold transition hover:bg-white/10 disabled:opacity-50"
                 >
-                  {submitting === "request" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                  {submitting === "request" ? <TravelDots /> : <ShieldCheck className="h-4 w-4" />}
                   {submitting === "request" ? "Submitting…" : "Request to book (pay later)"}
                 </button>
                 <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">

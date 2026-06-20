@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Mail, Phone, MapPin, Send, ChevronDown } from "lucide-react";
+import {  Mail, Phone, MapPin, Send, ChevronDown } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -97,7 +98,7 @@ export function AdminInquiries() {
 
       {loading ? (
         <div className="flex justify-center rounded-3xl glass p-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <TravelLoader />
         </div>
       ) : inquiries.length === 0 ? (
         <div className="rounded-3xl glass p-12 text-center text-sm text-muted-foreground">No inquiries found.</div>
@@ -142,7 +143,7 @@ export function AdminInquiries() {
                       />
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         <button onClick={() => sendReply(i._id)} disabled={busy} className="flex items-center gap-2 rounded-full gradient-sunset px-4 py-2 text-sm font-semibold text-white shadow-glow transition hover:scale-[1.02] disabled:opacity-50">
-                          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Save response
+                          {busy ? <TravelDots /> : <Send className="h-4 w-4" />} Save response
                         </button>
                         <select value={i.status} onChange={(e) => updateStatus(i._id, e.target.value)} className="rounded-full bg-white/5 px-3 py-2 text-xs outline-none">
                           <option value="new">New</option>

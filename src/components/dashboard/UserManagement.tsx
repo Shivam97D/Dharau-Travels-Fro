@@ -8,13 +8,14 @@ import {
   Mail,
   Calendar,
   Trash2,
-  Loader2,
+  
   KeyRound,
   CheckCircle2,
   X,
   Eye,
   EyeOff,
 } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import type { User } from "@/lib/types";
@@ -75,7 +76,7 @@ function ResetPasswordModal({ user, onClose }: { user: User; onClose: () => void
             disabled={loading}
             className="flex w-full items-center justify-center gap-2 rounded-2xl gradient-sunset py-2.5 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
           >
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {loading && <TravelDots />}
             Set password
           </button>
         </form>
@@ -178,7 +179,7 @@ export function UserManagement() {
 
         {loading ? (
           <div className="flex items-center justify-center rounded-3xl glass p-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <TravelLoader />
           </div>
         ) : (
           <div className="rounded-3xl glass overflow-hidden">

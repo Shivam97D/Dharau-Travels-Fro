@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Star, Loader2, ThumbsUp, Send } from "lucide-react";
+import { Star,  ThumbsUp, Send } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -140,7 +141,7 @@ export function TripReviews({ tripId }: { tripId: string }) {
             disabled={submitting}
             className="mt-3 flex items-center gap-2 rounded-full gradient-sunset px-5 py-2 text-sm font-semibold text-white shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
           >
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            {submitting ? <TravelDots /> : <Send className="h-4 w-4" />}
             Submit review
           </button>
         </div>
@@ -149,7 +150,7 @@ export function TripReviews({ tripId }: { tripId: string }) {
       {/* Reviews list */}
       {loading ? (
         <div className="mt-6 flex justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <TravelLoader size="sm" />
         </div>
       ) : reviews.length === 0 ? (
         <p className="mt-4 text-sm text-muted-foreground">

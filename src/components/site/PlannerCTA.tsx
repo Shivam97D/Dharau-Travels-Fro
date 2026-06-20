@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Send, Loader2 } from "lucide-react";
+import { Sparkles, Send } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -139,7 +140,7 @@ export function PlannerCTA() {
                     disabled={submitting}
                     className="mt-1 flex w-full items-center justify-center gap-2 rounded-full bg-white py-3 text-sm font-bold text-foreground shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
                   >
-                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    {submitting ? <TravelDots /> : <Send className="h-4 w-4" />}
                     {submitting ? "Sending…" : "Send my request"}
                   </button>
                 </form>

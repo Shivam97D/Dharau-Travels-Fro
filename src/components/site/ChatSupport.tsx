@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, X, Send, Bot, User, ChevronRight, Loader2 } from "lucide-react";
+import { Sparkles, X, Send, Bot, User, ChevronRight } from "lucide-react";
+import { TravelDots } from "@/components/ui/TravelLoader";
 import api from "@/lib/api";
 
 type Message = { role: "bot" | "user"; text: string };
@@ -128,9 +129,9 @@ export function ChatSupport() {
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full gradient-aurora text-white">
                     <Bot className="h-3.5 w-3.5" />
                   </div>
-                  <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-muted px-3.5 py-2.5">
-                    <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">Thinking…</span>
+                  <div className="flex items-center gap-2 rounded-2xl rounded-tl-sm bg-muted px-3.5 py-2.5">
+                    <TravelDots className="text-primary" />
+                    <span className="text-xs text-muted-foreground">Planning your trip…</span>
                   </div>
                 </div>
               )}

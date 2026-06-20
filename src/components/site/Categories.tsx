@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Users2, User, Mountain, Tent, Zap, Loader2, MapPin, Clock, Star } from "lucide-react";
+import { Users2, User, Mountain, Tent, Zap,  MapPin, Clock, Star } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { SectionHeader } from "./Section";
 import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
@@ -204,7 +205,7 @@ export function Categories() {
 
               {loading ? (
                 <div className="flex justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <TravelLoader />
                 </div>
               ) : trips.length === 0 ? (
                 <div className="flex flex-col items-center gap-3 rounded-3xl glass py-14 text-center">

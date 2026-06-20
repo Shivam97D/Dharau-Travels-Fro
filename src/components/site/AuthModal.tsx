@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, Lock, User, Plane, AlertCircle, Loader2, CheckCircle2, RefreshCw } from "lucide-react";
+import { X, Mail, Lock, User, Plane, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
+import { TravelDots } from "@/components/ui/TravelLoader";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import api from "@/lib/api";
@@ -207,7 +208,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                   animate={{ opacity: 1, y: 0 }}
                   className="mt-4 flex items-center gap-2 rounded-xl bg-blue-500/10 px-3 py-2 text-sm text-blue-400"
                 >
-                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                  <TravelDots />
                   Server is starting up, please wait a moment…
                 </motion.div>
               )}
@@ -270,7 +271,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                     disabled={loading}
                     className="flex w-full items-center justify-center gap-2 rounded-2xl gradient-sunset py-3 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {loading && <TravelDots />}
                     Verify & Sign in
                   </button>
 
@@ -338,7 +339,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                       disabled={loading}
                       className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl gradient-sunset py-3 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                      {loading && <TravelDots />}
                       {mode === "login" ? "Sign in" : mode === "register" ? "Create account" : "Send reset link"}
                     </button>
                   </form>

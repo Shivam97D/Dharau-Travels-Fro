@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { Lock, Loader2, Eye, EyeOff, Plane } from "lucide-react";
+import { Lock,  Eye, EyeOff, Plane } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -89,7 +90,7 @@ function ResetPasswordPage() {
               disabled={loading}
               className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl gradient-sunset py-3 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
             >
-              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {loading && <TravelDots />}
               Reset password
             </button>
           </form>

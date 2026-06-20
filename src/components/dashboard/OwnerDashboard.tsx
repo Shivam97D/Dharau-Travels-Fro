@@ -10,10 +10,11 @@ import {
   ArrowDown,
   Calendar,
   Activity,
-  Loader2,
+  
   RefreshCw,
   MapPin,
 } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import {
   LineChart,
   Line,
@@ -154,7 +155,7 @@ export function OwnerDashboard({ onNavigate }: { onNavigate?: (tab: string) => v
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center rounded-3xl glass">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <TravelDots />
       </div>
     );
   }

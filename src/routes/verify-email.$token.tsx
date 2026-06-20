@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CheckCircle2, XCircle, Loader2, Plane } from "lucide-react";
+import { CheckCircle2, XCircle,  Plane } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import api from "@/lib/api";
 
 export const Route = createFileRoute("/verify-email/$token")({
@@ -30,7 +31,7 @@ function VerifyEmailPage() {
           </div>
         </div>
         <div className="flex flex-col items-center px-6 pb-8 pt-12 text-center">
-          {status === "loading" && <Loader2 className="h-12 w-12 animate-spin text-primary" />}
+          {status === "loading" && <TravelDots />}
           {status === "success" && <CheckCircle2 className="h-12 w-12 text-green-500" />}
           {status === "error" && <XCircle className="h-12 w-12 text-destructive" />}
 

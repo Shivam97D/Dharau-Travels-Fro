@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Loader2, Mail, Download, Users, Send, Eye, EyeOff,
+   Mail, Download, Users, Send, Eye, EyeOff,
   CheckSquare, Square, Video, Image, Trash2, Star,
   Upload, RefreshCw, GripVertical, X, Check,
 } from "lucide-react";
+import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -193,7 +194,7 @@ function MediaLibrary() {
           disabled={uploading}
           className="flex items-center gap-2 rounded-full gradient-aurora px-4 py-2 text-sm font-medium text-white transition hover:scale-105 disabled:opacity-50"
         >
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          {uploading ? <TravelDots /> : <Upload className="h-4 w-4" />}
           {uploading ? "Uploading…" : `Upload to ${folder.label}`}
         </button>
         <button onClick={loadAssets} disabled={loadingAssets} className="grid h-8 w-8 place-items-center rounded-full glass transition hover:bg-white/10 disabled:opacity-50">
@@ -215,7 +216,7 @@ function MediaLibrary() {
       {/* Asset grid */}
       {loadingAssets ? (
         <div className="flex justify-center py-10">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <TravelLoader size="sm" />
         </div>
       ) : assets.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-2xl glass py-10 text-center">
@@ -259,7 +260,7 @@ function MediaLibrary() {
                   disabled={deleting === asset.publicId}
                   className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full bg-red-500/80 text-white opacity-0 transition hover:bg-red-600 group-hover:opacity-100 disabled:opacity-50"
                 >
-                  {deleting === asset.publicId ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                  {deleting === asset.publicId ? <TravelDots /> : <Trash2 className="h-3 w-3" />}
                 </button>
 
                 <div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1 text-[10px] text-white/70 opacity-0 group-hover:opacity-100">
@@ -282,7 +283,7 @@ function MediaLibrary() {
             disabled={saving}
             className="flex items-center gap-2 rounded-full gradient-sunset px-5 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
           >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Star className="h-4 w-4" />}
+            {saving ? <TravelDots /> : <Star className="h-4 w-4" />}
             Save Config
           </button>
         </div>
@@ -449,10 +450,10 @@ function NewsletterPanel() {
         </div>
         <div className="flex flex-wrap gap-3">
           <button onClick={() => send(false)} disabled={sending || activeCount === 0} className="flex items-center gap-2 rounded-full gradient-sunset px-5 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:scale-[1.02] disabled:opacity-50">
-            {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Send to all ({activeCount})
+            {sending ? <TravelDots /> : <Send className="h-4 w-4" />} Send to all ({activeCount})
           </button>
           <button onClick={() => send(true)} disabled={sending || selected.size === 0} className="flex items-center gap-2 rounded-full border border-border bg-white/5 px-5 py-2.5 text-sm font-semibold transition hover:bg-white/10 disabled:opacity-50">
-            {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Send to selected ({selected.size})
+            {sending ? <TravelDots /> : <Send className="h-4 w-4" />} Send to selected ({selected.size})
           </button>
         </div>
       </div>
@@ -463,7 +464,7 @@ function NewsletterPanel() {
           {subscribers.length > 0 && <button onClick={exportCsv} className="flex items-center gap-2 rounded-full glass px-3 py-1.5 text-xs font-medium transition hover:bg-white/10"><Download className="h-3.5 w-3.5" /> CSV</button>}
         </div>
         {loading ? (
-          <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
+          <div className="flex justify-center py-6"><TravelDots /></div>
         ) : subscribers.length === 0 ? (
           <p className="py-4 text-center text-sm text-muted-foreground">No subscribers yet.</p>
         ) : (
