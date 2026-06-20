@@ -4,6 +4,10 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import api from "@/lib/api";
 
+function pingServer() {
+  fetch("/api/health").catch(() => {});
+}
+
 type Mode = "login" | "register" | "forgot" | "otp";
 
 export function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -19,8 +23,14 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
   const [devResetLink, setDevResetLink] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [wakingUp, setWakingUp] = useState(false);
+  const coldStartRef = useRef(false);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const { login, register, refreshUser } = useAuth();
+
+  // Warm up server when modal opens so it's ready before the user submits
+  useEffect(() => {
+    if (open) pingServer();
+  }, [open]);
 
   // Cooldown timer
   useEffect(() => {
@@ -80,7 +90,8 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
     setError("");
     setLoading(true);
     setWakingUp(false);
-    api.onWakingUp = () => setWakingUp(true);
+    coldStartRef.current = false;
+    api.onWakingUp = () => { setWakingUp(true); coldStartRef.current = true; };
 
     try {
       if (mode === "login") {
@@ -107,10 +118,21 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
         if (token) setDevResetLink(`/reset-password/${token}`);
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      const msg = err instanceof Error ? err.message : "";
+      // Cold-start timeout during registration: the account was likely created in the
+      // background by the server after it woke up. Take the user straight to OTP entry
+      // so they can verify with the code from their email (or resend it).
+      if (mode === "register" && (coldStartRef.current || msg.includes("504"))) {
+        setOtpEmail(email);
+        setMode("otp");
+        setError("Server was starting up — your account was created. Check your email for a 6-digit code, or tap Resend OTP below.");
+      } else {
+        setError(msg || "Something went wrong. Please try again.");
+      }
     } finally {
       setLoading(false);
       setWakingUp(false);
+      coldStartRef.current = false;
       api.onWakingUp = undefined;
     }
   };
@@ -167,9 +189,13 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 flex items-center gap-2 rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                  className={`mt-4 flex items-start gap-2 rounded-xl px-3 py-2 text-sm ${
+                    error.startsWith("Server was starting up")
+                      ? "bg-amber-500/10 text-amber-400"
+                      : "bg-destructive/10 text-destructive"
+                  }`}
                 >
-                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   {error}
                 </motion.div>
               )}
