@@ -5,6 +5,7 @@ import {
   createRootRouteWithContext,
   useRouter,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { AuthProvider } from "@/lib/auth-context";
 import { AuthModalProvider } from "@/lib/auth-modal";
 import { Toaster } from "@/components/ui/sonner";
@@ -75,6 +76,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // Ping the backend the moment the app loads so Render wakes up before
+  // the user ever clicks login. Re-ping every 13 min to stay under the
+  // 15-min idle timeout and prevent cold starts entirely.
+  useEffect(() => {
+    const ping = () => fetch("/api/health").catch(() => {});
+    ping();
+    const id = setInterval(ping, 13 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
