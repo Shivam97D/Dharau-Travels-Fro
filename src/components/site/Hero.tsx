@@ -1,22 +1,34 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
-import { Search, Sparkles, MapPin, Calendar, Users, Star } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import api from "@/lib/api";
 
-const HERO_VIDEOS = [
+const LOCAL_FALLBACK = [
   "/videos/hero1.mp4",
   "/videos/hero2.mp4",
   "/videos/hero3.mp4",
   "/videos/hero4.mp4",
   "/videos/hero5.mp4",
   "/videos/hero6.mp4",
-];
+].filter(Boolean);
 
 const CYCLE_MS = 4000;
 
 export function Hero() {
   const ref = useRef<HTMLDivElement>(null);
   const [current, setCurrent] = useState(0);
+  const [videos, setVideos] = useState<string[]>(LOCAL_FALLBACK);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+
+  // Fetch hero videos from site config; fall back to local files
+  useEffect(() => {
+    api.getSiteConfig()
+      .then((res) => {
+        const urls = res.data?.heroVideos?.map((v) => v.url).filter(Boolean) ?? [];
+        if (urls.length > 0) setVideos(urls);
+      })
+      .catch(() => {});
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -27,11 +39,12 @@ export function Hero() {
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   useEffect(() => {
+    if (videos.length === 0) return;
     const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % HERO_VIDEOS.length);
+      setCurrent((prev) => (prev + 1) % videos.length);
     }, CYCLE_MS);
     return () => clearInterval(timer);
-  }, []);
+  }, [videos]);
 
   useEffect(() => {
     const vid = videoRefs.current[current];
@@ -46,7 +59,7 @@ export function Hero() {
       {/* Parallax video background */}
       <motion.div style={{ y, scale }} className="absolute inset-0 -z-10">
         <div className="relative h-full w-full">
-          {HERO_VIDEOS.map((src, i) => (
+          {videos.map((src, i) => (
             <motion.video
               key={src}
               ref={(el) => { videoRefs.current[i] = el; }}
@@ -147,104 +160,8 @@ export function Hero() {
           </a>
         </motion.div>
 
-        {/* Search bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9, duration: 0.8 }}
-          className="mt-12 w-full max-w-3xl"
-        >
-          <div className="glass rounded-3xl p-2 shadow-float">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1.4fr_1fr_1fr_auto]">
-              <SearchField
-                icon={<MapPin className="h-4 w-4" />}
-                label="Where to"
-                placeholder="Bali, Maldives…"
-              />
-              <SearchField
-                icon={<Calendar className="h-4 w-4" />}
-                label="When"
-                placeholder="Add dates"
-              />
-              <SearchField
-                icon={<Users className="h-4 w-4" />}
-                label="Travelers"
-                placeholder="2 adults"
-              />
-              <button className="grid place-items-center rounded-2xl gradient-sunset p-4 text-primary-foreground shadow-glow transition hover:scale-105">
-                <Search className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-        </motion.div>
       </motion.div>
 
     </section>
-  );
-}
-
-function SearchField({
-  icon,
-  label,
-  placeholder,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  placeholder: string;
-}) {
-  return (
-    <label className="flex items-center gap-3 rounded-2xl bg-white/60 px-4 py-3 transition hover:bg-white/80">
-      <span className="grid h-9 w-9 place-items-center rounded-xl gradient-tropic text-white">
-        {icon}
-      </span>
-      <div className="flex-1 text-left">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-foreground/60">
-          {label}
-        </div>
-        <input
-          className="w-full bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-foreground/40"
-          placeholder={placeholder}
-        />
-      </div>
-    </label>
-  );
-}
-
-function FloatingCard({
-  img,
-  name,
-  rating,
-  className,
-  delay,
-  rotate = 4,
-}: {
-  img: string;
-  name: string;
-  rating: string;
-  className?: string;
-  delay: number;
-  rotate?: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 40, rotate: 0 }}
-      animate={{ opacity: 1, y: 0, rotate }}
-      transition={{ delay, duration: 1, ease: "easeOut" }}
-      whileHover={{ scale: 1.06, rotate: 0 }}
-      className={`absolute z-10 ${className}`}
-    >
-      <div className="animate-float-slow glass rounded-3xl p-2 shadow-float">
-        <div className="overflow-hidden rounded-2xl">
-          <img src={img} alt={name} className="h-32 w-full object-cover" loading="lazy" />
-        </div>
-        <div className="flex items-center justify-between px-2 py-2">
-          <span className="text-sm font-semibold text-foreground">{name}</span>
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground">
-            <Star className="h-3 w-3 fill-amber-glow text-amber-glow" />
-            {rating}
-          </span>
-        </div>
-      </div>
-    </motion.div>
   );
 }

@@ -10,7 +10,9 @@ const links = ["Destinations", "Trips", "Categories", "Gallery", "Contact"];
 export function Navbar({ onLogin }: { onLogin?: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(() => {
+    try { return localStorage.getItem("theme") === "dark"; } catch { return false; }
+  });
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { openAuth } = useAuthModal();
   const handleSignIn = onLogin ?? openAuth;
@@ -25,6 +27,7 @@ export function Navbar({ onLogin }: { onLogin?: () => void }) {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
+    try { localStorage.setItem("theme", dark ? "dark" : "light"); } catch { /* ignore */ }
   }, [dark]);
 
   const handleLogout = async () => {

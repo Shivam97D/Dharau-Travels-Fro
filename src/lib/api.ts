@@ -370,6 +370,45 @@ class ApiClient {
     const queryString = params ? "?" + new URLSearchParams(params).toString() : "";
     return this.get(`/newsletter${queryString}`);
   }
+
+  async sendNewsletter(payload: { subject: string; html: string; emailIds?: string[] }) {
+    return this.post("/newsletter/send", payload);
+  }
+
+  async sendChatMessage(message: string, history: { role: "bot" | "user"; text: string }[]) {
+    return this.post<{ reply: string }>("/chat", { message, history });
+  }
+
+  // Site config (public)
+  async getSiteConfig() {
+    return this.get<{ heroVideos: { url: string; publicId: string; label: string }[]; galleryImages: { url: string; publicId: string; label: string }[] }>("/site-config");
+  }
+
+  // Admin: update site config
+  async updateSiteConfig(data: { heroVideos?: { url: string; publicId: string; label: string }[]; galleryImages?: { url: string; publicId: string; label: string }[] }) {
+    return this.put("/admin/site-config", data);
+  }
+
+  // Admin: list Cloudinary assets in a folder
+  async listMediaAssets(folder: string, type: "image" | "video" = "image") {
+    return this.get(`/admin/media?folder=${encodeURIComponent(folder)}&type=${type}`);
+  }
+
+  // Admin: delete a Cloudinary asset
+  async deleteMediaAsset(publicId: string, resourceType: "image" | "video" = "image") {
+    return this.request("/admin/media", { method: "DELETE", body: JSON.stringify({ publicId, resourceType }) });
+  }
+
+  async uploadMedia(file: File, type: "image" | "video" = "image"): Promise<string> {
+    const form = new FormData();
+    form.append("file", file);
+    const headers: Record<string, string> = {};
+    if (this.token) headers["Authorization"] = `Bearer ${this.token}`;
+    const res = await fetch(`${this.baseUrl}/admin/upload/${type}`, { method: "POST", headers, body: form });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message ?? "Upload failed");
+    return data.url as string;
+  }
 }
 
 export const api = new ApiClient(API_URL);

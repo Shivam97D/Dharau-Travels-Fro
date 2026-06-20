@@ -87,7 +87,12 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
         await login(email, password);
         onClose();
       } else if (mode === "register") {
-        await register(name, email, password);
+        const result = await register(name, email, password);
+        if (result.requiresOtp) {
+          setOtpEmail(email);
+          switchMode("otp");
+          return;
+        }
         onClose();
       } else if (mode === "otp") {
         const code = otp.join("");

@@ -34,6 +34,7 @@ export function UserDashboard() {
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState<string | null>(null);
   const [paying, setPaying] = useState<string | null>(null);
+  const [unsaving, setUnsaving] = useState<string | null>(null);
   const { user } = useAuth();
 
   const load = async () => {
@@ -90,6 +91,19 @@ export function UserDashboard() {
       toast.error(err instanceof Error ? err.message : "Could not start payment");
     } finally {
       setPaying(null);
+    }
+  };
+
+  const handleUnsave = async (tripId: string) => {
+    setUnsaving(tripId);
+    try {
+      await api.saveTrip(tripId); // toggles: removes since it's already saved
+      setSaved((prev) => prev.filter((t) => t._id !== tripId));
+      toast.success("Removed from saved trips");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Could not remove trip");
+    } finally {
+      setUnsaving(null);
     }
   };
 
@@ -224,23 +238,34 @@ export function UserDashboard() {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {saved.map((t) => (
-                  <Link
-                    key={t._id}
-                    to="/trips/$slug"
-                    params={{ slug: t.slug }}
-                    className="group overflow-hidden rounded-2xl bg-white/5 transition hover:bg-white/10"
-                  >
-                    {t.images?.[0] && (
-                      <img src={t.images[0].url} alt={t.title} className="h-32 w-full object-cover transition group-hover:scale-105" />
-                    )}
-                    <div className="p-4">
-                      <p className="font-semibold">{t.title}</p>
-                      <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <MapPin className="h-3 w-3" /> {t.destination}
-                      </p>
-                      <p className="mt-2 font-bold">{formatINR(t.price?.amount)}</p>
-                    </div>
-                  </Link>
+                  <div key={t._id} className="group relative overflow-hidden rounded-2xl bg-white/5 transition hover:bg-white/10">
+                    <Link
+                      to="/trips/$slug"
+                      params={{ slug: t.slug }}
+                      className="block"
+                    >
+                      {t.images?.[0] && (
+                        <img src={t.images[0].url} alt={t.title} className="h-32 w-full object-cover transition group-hover:scale-105" />
+                      )}
+                      <div className="p-4">
+                        <p className="font-semibold">{t.title}</p>
+                        <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <MapPin className="h-3 w-3" /> {t.destination}
+                        </p>
+                        <p className="mt-2 font-bold">{formatINR(t.price?.amount)}</p>
+                      </div>
+                    </Link>
+                    <button
+                      onClick={() => handleUnsave(t._id)}
+                      disabled={unsaving === t._id}
+                      title="Remove from saved"
+                      className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition hover:bg-red-500/70 disabled:opacity-50"
+                    >
+                      {unsaving === t._id
+                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                        : <XCircle className="h-4 w-4" />}
+                    </button>
+                  </div>
                 ))}
               </div>
             )}

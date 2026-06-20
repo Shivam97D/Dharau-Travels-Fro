@@ -147,7 +147,7 @@ function ContactPage() {
               key={card.title}
               href={card.href}
               target={card.href.startsWith("http") ? "_blank" : undefined}
-              rel="noopener noreferrer"
+              rel={card.href.startsWith("http") ? "noopener noreferrer" : undefined}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

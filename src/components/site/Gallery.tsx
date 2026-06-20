@@ -1,36 +1,58 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { SectionHeader } from "./Section";
-import safari from "@/assets/gal-safari.jpg";
-import cappadocia from "@/assets/gal-cappadocia.jpg";
-import machu from "@/assets/gal-machu.jpg";
-import paris from "@/assets/gal-paris.jpg";
-import bali from "@/assets/hero-bali.jpg";
-import iceland from "@/assets/dest-iceland.jpg";
-import santorini from "@/assets/dest-santorini.jpg";
-import maldives from "@/assets/dest-maldives.jpg";
+import api from "@/lib/api";
 
-const items = [
-  { src: cappadocia, label: "Cappadocia", span: "row-span-2" },
-  { src: paris, label: "Paris in bloom", span: "" },
-  { src: bali, label: "Bali sunset", span: "col-span-2" },
-  { src: machu, label: "Machu Picchu", span: "" },
-  { src: safari, label: "Kenya safari", span: "row-span-2" },
-  { src: santorini, label: "Santorini", span: "" },
-  { src: iceland, label: "Aurora", span: "" },
-  { src: maldives, label: "Maldives", span: "col-span-2" },
-];
+// Span pattern cycles so the grid always looks dynamic regardless of count
+const SPAN_PATTERN = ["row-span-2", "", "col-span-2", "", "row-span-2", "", "", "col-span-2"];
+
+interface GalleryItem { src: string; label: string; span: string; }
 
 export function Gallery() {
+  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [showPlaceholder, setShowPlaceholder] = useState(true);
+
+  useEffect(() => {
+    api.getSiteConfig()
+      .then((res) => {
+        const imgs = res.data?.galleryImages ?? [];
+        if (imgs.length > 0) {
+          setItems(imgs.map((img, i) => ({
+            src: img.url,
+            label: img.label || `Photo ${i + 1}`,
+            span: SPAN_PATTERN[i % SPAN_PATTERN.length],
+          })));
+          setShowPlaceholder(false);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  if (showPlaceholder) {
+    return (
+      <section id="gallery" className="relative py-24 sm:py-32">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <SectionHeader
+            eyebrow="Memories in motion"
+            title={<>Postcards from <span className="italic text-gradient-ocean">our travelers</span></>}
+          />
+          <div className="mt-16 flex flex-col items-center gap-4 rounded-3xl glass py-20 text-center">
+            <p className="text-lg font-semibold text-muted-foreground">Gallery coming soon</p>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              Upload your photos in the Admin → Media Library → Gallery folder, then select them in Site Config to display here.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section id="gallery" className="relative py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeader
           eyebrow="Memories in motion"
-          title={
-            <>
-              Postcards from <span className="italic text-gradient-ocean">our travelers</span>
-            </>
-          }
+          title={<>Postcards from <span className="italic text-gradient-ocean">our travelers</span></>}
         />
 
         <div className="mt-16 grid auto-rows-[180px] grid-cols-2 gap-3 sm:auto-rows-[220px] sm:grid-cols-4 sm:gap-4">

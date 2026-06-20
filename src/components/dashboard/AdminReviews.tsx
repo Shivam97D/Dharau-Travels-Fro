@@ -122,7 +122,7 @@ export function AdminReviews() {
 
       {filterStatus === "approved" && (
         <div className="rounded-2xl border border-border/50 bg-card/50 px-4 py-3 text-xs text-muted-foreground">
-          Use the ↑↓ arrows to control the order reviews appear on the homepage marquee.
+          Use the ↑↓ arrows to control the order reviews appear in the homepage testimonials row.
         </div>
       )}
 

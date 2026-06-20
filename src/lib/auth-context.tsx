@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<{ requiresOtp: boolean; email?: string }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   updateProfile: (data: {
@@ -62,11 +62,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (name: string, email: string, password: string) => {
     const response = await api.register(name, email, password);
+    if ((response as { requiresOtp?: boolean }).requiresOtp) {
+      return { requiresOtp: true, email };
+    }
     if (response.success && response.data) {
       const userData = response.data as User;
       setUser(userData);
       toast.success(`Welcome to DHARAVU JOURNEYS, ${userData.name?.split(" ")[0]}! 🌍`);
     }
+    return { requiresOtp: false };
   };
 
   const refreshUser = async () => {

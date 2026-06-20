@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -91,6 +91,8 @@ export function AdminTripManagement() {
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [formData, setFormData] = useState<TripFormData>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchTrips();
@@ -607,17 +609,67 @@ export function AdminTripManagement() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="mb-2 block text-sm font-medium">Image URLs (one per line)</label>
-                  <textarea
-                    value={formData.images.join("\n")}
-                    onChange={(e) => setFormData({ ...formData, images: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean) })}
-                    rows={3}
-                    className="w-full rounded-2xl bg-white/5 px-4 py-2 font-mono text-xs outline-none transition focus:bg-white/10"
-                    placeholder="https://images.unsplash.com/photo-...&#10;https://..."
-                  />
-                  {formData.images[0] && (
-                    <img src={formData.images[0]} alt="preview" className="mt-2 h-20 w-32 rounded-xl object-cover" onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")} />
-                  )}
+                  <label className="mb-2 block text-sm font-medium">Images</label>
+                  <div className="space-y-3">
+                    {/* Upload from device */}
+                    <div className="flex items-center gap-3">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={async (e) => {
+                          const files = Array.from(e.target.files ?? []);
+                          if (!files.length) return;
+                          setUploading(true);
+                          try {
+                            const urls = await Promise.all(files.map((f) => api.uploadMedia(f, "image")));
+                            setFormData((prev) => ({ ...prev, images: [...prev.images, ...urls] }));
+                            toast.success(`${urls.length} image(s) uploaded`);
+                          } catch (err: unknown) {
+                            toast.error(err instanceof Error ? err.message : "Upload failed");
+                          } finally {
+                            setUploading(false);
+                            if (fileInputRef.current) fileInputRef.current.value = "";
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="flex items-center gap-2 rounded-2xl border border-border bg-white/5 px-4 py-2 text-sm transition hover:bg-white/10 disabled:opacity-50"
+                      >
+                        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                        {uploading ? "Uploading…" : "Upload from device"}
+                      </button>
+                      <span className="text-xs text-muted-foreground">or paste URLs below</span>
+                    </div>
+                    {/* URL textarea */}
+                    <textarea
+                      value={formData.images.join("\n")}
+                      onChange={(e) => setFormData({ ...formData, images: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean) })}
+                      rows={3}
+                      className="w-full rounded-2xl bg-white/5 px-4 py-2 font-mono text-xs outline-none transition focus:bg-white/10"
+                      placeholder={"https://res.cloudinary.com/your-cloud/…\nhttps://images.unsplash.com/…"}
+                    />
+                    {/* Thumbnails */}
+                    {formData.images.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {formData.images.map((url, idx) => (
+                          <div key={idx} className="relative">
+                            <img src={url} alt={`img-${idx}`} className="h-16 w-24 rounded-xl object-cover" onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")} />
+                            <button
+                              type="button"
+                              onClick={() => setFormData((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }))}
+                              className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-red-500 text-white text-xs hover:bg-red-600"
+                            >×</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="md:col-span-2">
