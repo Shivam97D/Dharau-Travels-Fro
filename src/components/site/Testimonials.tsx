@@ -31,7 +31,7 @@ function Stars({ n, size = "h-4 w-4" }: { n: number; size?: string }) {
 }
 
 function ReviewCard({ r }: { r: Review }) {
-  const initials = r.user.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  const initials = (r.user?.name ?? "?").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   const gradients = ["gradient-sunset", "gradient-ocean", "gradient-tropic", "gradient-aurora"];
   const g = gradients[r._id.charCodeAt(0) % gradients.length];
   return (
@@ -44,8 +44,8 @@ function ReviewCard({ r }: { r: Review }) {
         "{r.comment}"
       </blockquote>
       <figcaption className="mt-5 flex items-center gap-3 border-t border-border pt-4">
-        {r.user.avatar ? (
-          <img src={r.user.avatar} alt={r.user.name} className="h-10 w-10 rounded-full object-cover" />
+        {r.user?.avatar ? (
+          <img src={r.user.avatar} alt={r.user?.name ?? "Guest"} className="h-10 w-10 rounded-full object-cover" />
         ) : (
           <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${g} text-sm font-bold text-primary-foreground`}>
             {initials}
@@ -53,7 +53,7 @@ function ReviewCard({ r }: { r: Review }) {
         )}
         <div>
           <div className="flex items-center gap-1.5 text-sm font-bold">
-            {r.user.name}
+            {r.user?.name ?? "Guest"}
             {r.isVerified && (
               <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] text-green-600">verified</span>
             )}
