@@ -265,6 +265,9 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                       />
                     ))}
                   </div>
+                  <p className="text-center text-xs text-muted-foreground">
+                    Didn't receive it? Check your <span className="font-semibold">spam / junk folder</span> — it may land there.
+                  </p>
 
                   <button
                     type="submit"

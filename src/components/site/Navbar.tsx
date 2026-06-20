@@ -6,7 +6,8 @@ import { useAuth } from "@/lib/auth-context";
 import { useAuthModal } from "@/lib/auth-modal";
 import { NotificationBell } from "./NotificationBell";
 
-const links = ["Destinations", "Trips", "Categories", "Gallery", "Contact"];
+const hashLinks = ["Destinations", "Trips", "Categories", "Gallery"];
+const links = [...hashLinks, "Contact"];
 
 export function Navbar({ onLogin }: { onLogin?: () => void }) {
   const [scrolled, setScrolled] = useState(false);
@@ -61,7 +62,7 @@ export function Navbar({ onLogin }: { onLogin?: () => void }) {
           </Link>
 
           <nav className="hidden items-center gap-1 md:flex">
-            {links.map((l) => (
+            {hashLinks.map((l) => (
               <a
                 key={l}
                 href={`/#${l.toLowerCase()}`}
@@ -74,6 +75,12 @@ export function Navbar({ onLogin }: { onLogin?: () => void }) {
                 />
               </a>
             ))}
+            <Link
+              to="/contact"
+              className="relative px-4 py-2 text-sm font-medium text-foreground/80 transition hover:text-foreground"
+            >
+              Contact
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -157,7 +164,7 @@ export function Navbar({ onLogin }: { onLogin?: () => void }) {
               className="mt-2 overflow-hidden rounded-3xl glass-mobile-nav p-4 md:hidden"
             >
               <nav className="flex flex-col gap-1">
-                {links.map((l) => (
+                {hashLinks.map((l) => (
                   <a
                     key={l}
                     href={`/#${l.toLowerCase()}`}
@@ -167,6 +174,13 @@ export function Navbar({ onLogin }: { onLogin?: () => void }) {
                     {l}
                   </a>
                 ))}
+                <Link
+                  to="/contact"
+                  onClick={() => setOpen(false)}
+                  className="rounded-2xl px-4 py-3 text-sm font-medium hover:bg-white/40"
+                >
+                  Contact
+                </Link>
                 {isAuthenticated ? (
                   <>
                     {isAdmin && (

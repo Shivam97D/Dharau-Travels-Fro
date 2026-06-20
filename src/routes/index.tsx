@@ -11,8 +11,6 @@ import { PlannerCTA } from "@/components/site/PlannerCTA";
 import { Footer } from "@/components/site/Footer";
 import { CursorGlow } from "@/components/site/CursorGlow";
 import { ScrollProgress } from "@/components/site/ScrollProgress";
-import { FloatingButtons } from "@/components/site/FloatingButtons";
-
 export const Route = createFileRoute("/")({
   component: Index,
 });
@@ -34,7 +32,6 @@ function Index() {
         <PlannerCTA />
       </main>
       <Footer />
-      <FloatingButtons />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Users2, User, Mountain, Tent, Zap,  MapPin, Clock, Star } from "lucide-react";
+import { Users2, User, Mountain, Tent, Zap, MapPin, Clock, Star, ChevronRight } from "lucide-react";
 import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { SectionHeader } from "./Section";
 import { useState, useEffect } from "react";
@@ -142,7 +142,45 @@ export function Categories() {
           }
           subtitle="One trip can be many things — group, solo, trekking, camping, adventure, or all at once."
         />
-        <div className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+        {/* Mobile: compact one-line chips */}
+        <div className="mt-10 flex flex-col gap-2 sm:hidden">
+          {cats.map((c, i) => {
+            const Icon = c.icon;
+            const isActive = active === c.value;
+            return (
+              <motion.button
+                key={c.value}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.06, duration: 0.4 }}
+                onClick={() => handleChip(c.value)}
+                className={`relative flex items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 text-left transition ${
+                  isActive ? "border-transparent ring-2 ring-primary" : "border-border bg-card"
+                }`}
+              >
+                {isActive && (
+                  <div className={`absolute inset-0 ${c.gradient}`} />
+                )}
+                <div className={`relative grid h-8 w-8 shrink-0 place-items-center rounded-xl ${c.gradient} text-primary-foreground shadow-glow`}>
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="relative flex-1 min-w-0">
+                  <span className={`font-semibold text-sm ${isActive ? "text-primary-foreground" : ""}`}>
+                    {c.name}
+                  </span>
+                  <span className={`ml-2 text-xs ${isActive ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                    {c.desc}
+                  </span>
+                </div>
+                <ChevronRight className={`relative h-4 w-4 shrink-0 transition ${isActive ? "text-primary-foreground rotate-90" : "text-muted-foreground"}`} />
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/* Desktop: full cards */}
+        <div className="mt-14 hidden grid-cols-3 gap-4 sm:grid md:grid-cols-5">
           {cats.map((c, i) => {
             const Icon = c.icon;
             const isActive = active === c.value;

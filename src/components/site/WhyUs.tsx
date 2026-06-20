@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Wallet, Users2, MapPin, UserCheck, ShieldCheck, Route } from "lucide-react";
+import { Wallet, Users2, MapPin, UserCheck, ShieldCheck, Route, ChevronRight } from "lucide-react";
 import { SectionHeader } from "./Section";
 
 const features = [
@@ -41,9 +42,53 @@ const features = [
   },
 ];
 
+function MobileFlipCard({ f, i }: { f: typeof features[0]; i: number }) {
+  const [flipped, setFlipped] = useState(false);
+  const Icon = f.icon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4, delay: i * 0.06 }}
+      className="relative h-14 cursor-pointer select-none"
+      style={{ perspective: 800 }}
+      onClick={() => setFlipped((v) => !v)}
+    >
+      <motion.div
+        className="absolute inset-0"
+        animate={{ rotateY: flipped ? 180 : 0 }}
+        transition={{ duration: 0.4, ease: "easeInOut" }}
+        style={{ transformStyle: "preserve-3d" }}
+      >
+        {/* Front: icon + title */}
+        <div
+          className="absolute inset-0 flex items-center gap-3 rounded-2xl border border-border bg-card px-4 shadow-soft"
+          style={{ backfaceVisibility: "hidden" }}
+        >
+          <div className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl ${f.color} text-primary-foreground`}>
+            <Icon className="h-4 w-4" />
+          </div>
+          <span className="flex-1 text-sm font-semibold">{f.title}</span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </div>
+
+        {/* Back: description */}
+        <div
+          className={`absolute inset-0 flex items-center rounded-2xl px-4 ${f.color}`}
+          style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+        >
+          <p className="text-xs font-medium leading-relaxed text-primary-foreground/90">{f.desc}</p>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export function WhyUs() {
   return (
-    <section className="relative py-24 sm:py-32">
+    <section className="relative py-20 sm:py-32">
       <div className="absolute inset-0 -z-10 bg-grain opacity-50" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeader
@@ -56,7 +101,15 @@ export function WhyUs() {
           subtitle="Six things we obsess over so you can switch off and just be there."
         />
 
-        <div className="mt-16 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Mobile: compact flip cards */}
+        <div className="mt-10 flex flex-col gap-3 sm:hidden">
+          {features.map((f, i) => (
+            <MobileFlipCard key={f.title} f={f} i={i} />
+          ))}
+        </div>
+
+        {/* Desktop: full cards */}
+        <div className="mt-16 hidden grid-cols-2 gap-5 sm:grid lg:grid-cols-3">
           {features.map((f, i) => {
             const Icon = f.icon;
             return (

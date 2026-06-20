@@ -227,6 +227,7 @@ export function Testimonials() {
     <>
       <section className="relative overflow-hidden py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          {/* Header row — Write a review on desktop only */}
           <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
             <SectionHeader
               eyebrow="Travelers say"
@@ -235,30 +236,13 @@ export function Testimonials() {
                   Real journeys, <span className="italic text-gradient-sunset">real stories</span>
                 </>
               }
-              subtitle="Every review is from a traveler who experienced Dharavu firsthand."
             />
-            <div className="flex items-center gap-2 self-start sm:self-auto">
-              <button
-                onClick={() => scroll("left")}
-                className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card transition hover:bg-muted"
-                aria-label="Scroll left"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => scroll("right")}
-                className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card transition hover:bg-muted"
-                aria-label="Scroll right"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-              <button
-                onClick={handleWriteReview}
-                className="rounded-full gradient-sunset px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-105"
-              >
-                Write a review
-              </button>
-            </div>
+            <button
+              onClick={handleWriteReview}
+              className="hidden sm:block self-start sm:self-auto rounded-full gradient-sunset px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-105"
+            >
+              Write a review
+            </button>
           </div>
         </div>
 
@@ -277,31 +261,62 @@ export function Testimonials() {
             </button>
           </div>
         ) : (
-          <div
-            ref={scrollRef}
-            className="mt-12 flex gap-5 overflow-x-auto scroll-smooth px-4 pb-4 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            style={{ cursor: "grab" }}
-            onMouseDown={(e) => {
-              const el = scrollRef.current;
-              if (!el) return;
-              el.style.cursor = "grabbing";
-              const startX = e.pageX - el.offsetLeft;
-              const startScroll = el.scrollLeft;
-              const onMove = (ev: MouseEvent) => {
-                el.scrollLeft = startScroll - (ev.pageX - el.offsetLeft - startX);
-              };
-              const onUp = () => {
-                el.style.cursor = "grab";
-                window.removeEventListener("mousemove", onMove);
-                window.removeEventListener("mouseup", onUp);
-              };
-              window.addEventListener("mousemove", onMove);
-              window.addEventListener("mouseup", onUp);
-            }}
-          >
-            {reviews.map((r) => (
-              <ReviewCard key={r._id} r={r} />
-            ))}
+          <div className="relative mt-12">
+            {/* Prev/Next arrows overlaid on the scroll area */}
+            <button
+              onClick={() => scroll("left")}
+              aria-label="Previous reviews"
+              className="absolute left-1 top-1/2 z-10 -translate-y-1/2 grid h-10 w-10 place-items-center rounded-full border border-border bg-card/90 shadow-float backdrop-blur-sm transition hover:scale-110 hover:bg-card sm:left-2"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+
+            <div
+              ref={scrollRef}
+              className="flex gap-5 overflow-x-auto scroll-smooth px-14 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              style={{ cursor: "grab" }}
+              onMouseDown={(e) => {
+                const el = scrollRef.current;
+                if (!el) return;
+                el.style.cursor = "grabbing";
+                const startX = e.pageX - el.offsetLeft;
+                const startScroll = el.scrollLeft;
+                const onMove = (ev: MouseEvent) => {
+                  el.scrollLeft = startScroll - (ev.pageX - el.offsetLeft - startX);
+                };
+                const onUp = () => {
+                  el.style.cursor = "grab";
+                  window.removeEventListener("mousemove", onMove);
+                  window.removeEventListener("mouseup", onUp);
+                };
+                window.addEventListener("mousemove", onMove);
+                window.addEventListener("mouseup", onUp);
+              }}
+            >
+              {reviews.map((r) => (
+                <ReviewCard key={r._id} r={r} />
+              ))}
+            </div>
+
+            <button
+              onClick={() => scroll("right")}
+              aria-label="Next reviews"
+              className="absolute right-1 top-1/2 z-10 -translate-y-1/2 grid h-10 w-10 place-items-center rounded-full border border-border bg-card/90 shadow-float backdrop-blur-sm transition hover:scale-110 hover:bg-card sm:right-2"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+        )}
+
+        {/* Write a review — below the cards, mobile only */}
+        {reviews.length > 0 && (
+          <div className="mt-6 flex justify-center sm:hidden">
+            <button
+              onClick={handleWriteReview}
+              className="rounded-full gradient-sunset px-8 py-3 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-105"
+            >
+              Write a review
+            </button>
           </div>
         )}
       </section>
