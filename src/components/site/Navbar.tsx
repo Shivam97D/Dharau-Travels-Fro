@@ -4,6 +4,7 @@ import { Menu, X, Plane, Moon, Sun, LogOut, Shield, LayoutDashboard } from "luci
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { useAuthModal } from "@/lib/auth-modal";
+import { NotificationBell } from "./NotificationBell";
 
 const links = ["Destinations", "Trips", "Categories", "Gallery", "Contact"];
 
@@ -86,6 +87,7 @@ export function Navbar({ onLogin }: { onLogin?: () => void }) {
 
             {isAuthenticated ? (
               <>
+                <NotificationBell />
                 {isAdmin && (
                   <Link
                     to="/admin"

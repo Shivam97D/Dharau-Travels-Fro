@@ -399,6 +399,31 @@ class ApiClient {
     return this.request("/admin/media", { method: "DELETE", body: JSON.stringify({ publicId, resourceType }) });
   }
 
+  // ── Notifications ──────────────────────────────────────────────────
+  async getNotifications(page = 1, limit = 20) {
+    return this.get(`/notifications?page=${page}&limit=${limit}`);
+  }
+
+  async getNotificationCount() {
+    return this.get("/notifications/count");
+  }
+
+  async markNotificationRead(id: string) {
+    return this.put(`/notifications/${id}/read`);
+  }
+
+  async markAllNotificationsRead() {
+    return this.put("/notifications/read-all");
+  }
+
+  async deleteNotification(id: string) {
+    return this.delete(`/notifications/${id}`);
+  }
+
+  async clearAllNotifications() {
+    return this.request("/notifications", { method: "DELETE" });
+  }
+
   async uploadMedia(file: File, type: "image" | "video" = "image"): Promise<string> {
     const form = new FormData();
     form.append("file", file);
