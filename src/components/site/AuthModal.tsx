@@ -18,6 +18,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
   const [password, setPassword] = useState("");
   const [otpEmail, setOtpEmail] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [registerOtpSent, setRegisterOtpSent] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -45,6 +46,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
     setSent(false);
     setDevResetLink(null);
     setOtp(["", "", "", "", "", ""]);
+    setRegisterOtpSent(false);
   };
 
   const switchMode = (m: Mode) => { setMode(m); reset(); };
@@ -99,13 +101,23 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
         await login(email, password);
         onClose();
       } else if (mode === "register") {
-        const result = await register(name, email, password);
-        if (result.requiresOtp) {
-          setOtpEmail(email);
-          switchMode("otp");
-          return;
+        if (registerOtpSent) {
+          // Verify inline OTP
+          const code = otp.join("");
+          if (code.length < 6) { setError("Enter all 6 digits"); setLoading(false); return; }
+          await api.verifyLoginOtp(otpEmail, code);
+          await refreshUser();
+          onClose();
+        } else {
+          const result = await register(name, email, password);
+          if ((result as any).requiresOtp) {
+            setOtpEmail(email);
+            setRegisterOtpSent(true);
+            setTimeout(() => otpRefs.current[0]?.focus(), 80);
+            return;
+          }
+          onClose();
         }
-        onClose();
       } else if (mode === "otp") {
         const code = otp.join("");
         if (code.length < 6) { setError("Enter all 6 digits"); setLoading(false); return; }
@@ -125,7 +137,8 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
       // so they can verify with the code from their email (or resend it).
       if (mode === "register" && (coldStartRef.current || msg.includes("504"))) {
         setOtpEmail(email);
-        setMode("otp");
+        setRegisterOtpSent(true);
+        setTimeout(() => otpRefs.current[0]?.focus(), 80);
         setError("Server was starting up — your account was created. Check your email for a 6-digit code, or tap Resend OTP below.");
       } else {
         setError(msg || "Something went wrong. Please try again.");
@@ -321,9 +334,64 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        required
+                        required={!registerOtpSent}
+                        disabled={registerOtpSent}
                       />
                     )}
+
+                    {/* Inline OTP for registration — appears below password */}
+                    <AnimatePresence>
+                      {mode === "register" && registerOtpSent && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                            <p className="mb-3 text-center text-xs text-muted-foreground">
+                              Code sent to <span className="font-semibold text-foreground">{otpEmail}</span>
+                            </p>
+                            <div className="flex justify-center gap-2" onPaste={handleOtpPaste}>
+                              {otp.map((digit, idx) => (
+                                <input
+                                  key={idx}
+                                  ref={(el) => { otpRefs.current[idx] = el; }}
+                                  type="text"
+                                  inputMode="numeric"
+                                  maxLength={1}
+                                  value={digit}
+                                  onChange={(e) => handleOtpChange(idx, e.target.value)}
+                                  onKeyDown={(e) => handleOtpKey(idx, e)}
+                                  className="h-12 w-10 rounded-xl border border-border bg-muted/40 text-center text-lg font-bold outline-none transition focus:border-primary focus:bg-card"
+                                />
+                              ))}
+                            </div>
+                            <p className="mt-2.5 text-center text-[11px] text-muted-foreground">
+                              Check your <span className="font-semibold">spam / junk</span> if it doesn't arrive
+                            </p>
+                            <div className="mt-2 flex items-center justify-between">
+                              <button
+                                type="button"
+                                onClick={() => { setRegisterOtpSent(false); setOtp(["","","","","",""]); setError(""); }}
+                                className="text-[11px] text-muted-foreground hover:text-foreground"
+                              >
+                                ← Change details
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleResend}
+                                disabled={resendCooldown > 0 || loading}
+                                className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline disabled:opacity-50"
+                              >
+                                <RefreshCw className="h-3 w-3" />
+                                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     {mode === "login" && (
                       <div className="text-right">
@@ -343,27 +411,47 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                       className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl gradient-sunset py-3 text-sm font-semibold text-primary-foreground shadow-glow transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {loading && <TravelDots />}
-                      {mode === "login" ? "Sign in" : mode === "register" ? "Create account" : "Send reset link"}
+                      {mode === "login"
+                        ? "Sign in"
+                        : mode === "register"
+                          ? registerOtpSent ? "Verify & Join" : "Create account"
+                          : "Send reset link"}
                     </button>
                   </form>
 
-                  <div className="mt-5 text-center text-xs text-muted-foreground">
-                    {mode === "forgot" ? (
+                  {mode === "login" ? (
+                    <div className="mt-4 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-px flex-1 bg-border" />
+                        <span className="text-xs text-muted-foreground">or</span>
+                        <div className="h-px flex-1 bg-border" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => switchMode("register")}
+                        className="w-full rounded-2xl border border-primary/40 py-3 text-sm font-semibold text-primary transition hover:bg-primary/8 active:scale-[0.98]"
+                      >
+                        Create new account
+                      </button>
+                    </div>
+                  ) : mode === "forgot" ? (
+                    <div className="mt-5 text-center text-xs text-muted-foreground">
                       <button onClick={() => switchMode("login")} className="font-semibold text-primary hover:underline">
                         Back to sign in
                       </button>
-                    ) : (
-                      <>
-                        {mode === "login" ? "New here? " : "Have an account? "}
-                        <button
-                          onClick={() => switchMode(mode === "login" ? "register" : "login")}
-                          className="font-semibold text-primary hover:underline"
-                        >
-                          {mode === "login" ? "Create account" : "Sign in"}
-                        </button>
-                      </>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <p className="mt-5 text-center text-xs text-muted-foreground">
+                      Already have an account?{" "}
+                      <button
+                        type="button"
+                        onClick={() => switchMode("login")}
+                        className="font-semibold text-primary hover:underline"
+                      >
+                        Sign in
+                      </button>
+                    </p>
+                  )}
                 </>
               )}
             </div>
