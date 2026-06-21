@@ -3,6 +3,7 @@ import { Navbar } from "@/components/site/Navbar";
 import { Hero } from "@/components/site/Hero";
 // import { Destinations } from "@/components/site/Destinations";
 import { FeaturedTrips } from "@/components/site/FeaturedTrips";
+import { FeaturedJourney } from "@/components/site/FeaturedJourney";
 import { WhyUs } from "@/components/site/WhyUs";
 import { Categories } from "@/components/site/Categories";
 import { Testimonials } from "@/components/site/Testimonials";
@@ -23,6 +24,7 @@ function Index() {
       <Navbar />
       <main>
         <Hero />
+        <FeaturedJourney />
         {/* <Destinations /> */}
         <FeaturedTrips />
         <WhyUs />

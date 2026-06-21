@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -67,6 +67,81 @@ const EMPTY_FORM: TripFormData = {
   excludes: [],
   tags: [],
 };
+
+// Controlled input for comma-separated string arrays.
+// Keeps raw text local while typing; only commits to parent on blur.
+function CommaSeparatedField({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string[];
+  onChange: (arr: string[]) => void;
+  placeholder?: string;
+}) {
+  const joined = value.join(", ");
+  const [raw, setRaw] = useState(joined);
+  const lastCommitted = useRef(joined);
+
+  useEffect(() => {
+    const j = value.join(", ");
+    if (j !== lastCommitted.current) {
+      setRaw(j);
+      lastCommitted.current = j;
+    }
+  }, [value]);
+
+  const commit = useCallback(
+    (str: string) => {
+      const arr = str.split(",").map((s) => s.trim()).filter(Boolean);
+      const normalized = arr.join(", ");
+      lastCommitted.current = normalized;
+      setRaw(normalized);
+      onChange(arr);
+    },
+    [onChange],
+  );
+
+  return (
+    <div className="md:col-span-2">
+      <label className="mb-2 block text-sm font-medium">{label}</label>
+      <input
+        type="text"
+        value={raw}
+        onChange={(e) => setRaw(e.target.value)}
+        onBlur={(e) => commit(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-2xl bg-white/5 px-4 py-2 outline-none transition focus:bg-white/10"
+      />
+      {value.length > 0 && (
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {value.map((item, i) => (
+            <span
+              key={i}
+              className="flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-0.5 text-xs"
+            >
+              {item}
+              <button
+                type="button"
+                onClick={() => {
+                  const next = value.filter((_, j) => j !== i);
+                  lastCommitted.current = next.join(", ");
+                  setRaw(next.join(", "));
+                  onChange(next);
+                }}
+                className="leading-none text-white/50 hover:text-white"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Convert the form's flat string fields into the API/document shape.
 function toTripPayload(f: TripFormData) {
@@ -598,16 +673,12 @@ export function AdminTripManagement() {
                   />
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="mb-2 block text-sm font-medium">Departure Dates (comma-separated, YYYY-MM-DD)</label>
-                  <input
-                    type="text"
-                    value={formData.departureDate.join(", ")}
-                    onChange={(e) => setFormData({ ...formData, departureDate: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
-                    className="w-full rounded-2xl bg-white/5 px-4 py-2 outline-none transition focus:bg-white/10"
-                    placeholder="2026-08-15, 2026-09-20"
-                  />
-                </div>
+                <CommaSeparatedField
+                  label="Departure Dates (YYYY-MM-DD)"
+                  value={formData.departureDate}
+                  onChange={(arr) => setFormData({ ...formData, departureDate: arr })}
+                  placeholder="2026-08-15, 2026-09-20"
+                />
 
                 <div className="md:col-span-2">
                   <label className="mb-2 block text-sm font-medium">Images</label>
@@ -685,22 +756,30 @@ export function AdminTripManagement() {
                   />
                 </div>
 
-                {([
-                  ["highlights", "Highlights (comma-separated)"],
-                  ["includes", "Included (comma-separated)"],
-                  ["excludes", "Not included (comma-separated)"],
-                  ["tags", "Tags (comma-separated)"],
-                ] as const).map(([key, label]) => (
-                  <div key={key} className="md:col-span-2">
-                    <label className="mb-2 block text-sm font-medium">{label}</label>
-                    <input
-                      type="text"
-                      value={(formData[key] as string[]).join(", ")}
-                      onChange={(e) => setFormData({ ...formData, [key]: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
-                      className="w-full rounded-2xl bg-white/5 px-4 py-2 outline-none transition focus:bg-white/10"
-                    />
-                  </div>
-                ))}
+                <CommaSeparatedField
+                  label="Highlights"
+                  value={formData.highlights}
+                  onChange={(arr) => setFormData({ ...formData, highlights: arr })}
+                  placeholder="summit challenge, panoramic views, night camping"
+                />
+                <CommaSeparatedField
+                  label="Included"
+                  value={formData.includes}
+                  onChange={(arr) => setFormData({ ...formData, includes: arr })}
+                  placeholder="accommodation, meals, guide, permits"
+                />
+                <CommaSeparatedField
+                  label="Not included"
+                  value={formData.excludes}
+                  onChange={(arr) => setFormData({ ...formData, excludes: arr })}
+                  placeholder="personal gear, transport to base"
+                />
+                <CommaSeparatedField
+                  label="Tags"
+                  value={formData.tags}
+                  onChange={(arr) => setFormData({ ...formData, tags: arr })}
+                  placeholder="trekking, mountains, nature, adventure"
+                />
 
                 <div className="flex items-center gap-3">
                   <input
