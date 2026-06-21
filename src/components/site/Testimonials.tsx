@@ -203,10 +203,25 @@ export function Testimonials() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isPaused = useRef(false);
 
   const scroll = (dir: "left" | "right") => {
     scrollRef.current?.scrollBy({ left: dir === "right" ? 360 : -360, behavior: "smooth" });
   };
+
+  useEffect(() => {
+    if (reviews.length <= 1) return;
+    const timer = setInterval(() => {
+      if (isPaused.current || !scrollRef.current) return;
+      const el = scrollRef.current;
+      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 10) {
+        el.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        el.scrollBy({ left: 360, behavior: "smooth" });
+      }
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [reviews.length]);
 
   const fetchReviews = () => {
     setLoading(true);
@@ -275,7 +290,10 @@ export function Testimonials() {
               ref={scrollRef}
               className="flex gap-5 overflow-x-auto scroll-smooth px-14 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               style={{ cursor: "grab" }}
+              onMouseEnter={() => { isPaused.current = true; }}
+              onMouseLeave={() => { isPaused.current = false; }}
               onMouseDown={(e) => {
+                isPaused.current = true;
                 const el = scrollRef.current;
                 if (!el) return;
                 el.style.cursor = "grabbing";
@@ -286,6 +304,7 @@ export function Testimonials() {
                 };
                 const onUp = () => {
                   el.style.cursor = "grab";
+                  isPaused.current = false;
                   window.removeEventListener("mousemove", onMove);
                   window.removeEventListener("mouseup", onUp);
                 };

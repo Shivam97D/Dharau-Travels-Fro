@@ -8,14 +8,15 @@ import { AdminInquiries } from "@/components/dashboard/AdminInquiries";
 import { AdminReviews } from "@/components/dashboard/AdminReviews";
 import { UserManagement } from "@/components/dashboard/UserManagement";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
+import { ActivityLogs } from "@/components/dashboard/ActivityLogs";
 import { Navbar } from "@/components/site/Navbar";
-import { LayoutDashboard, MapPin, CalendarCheck, MessageSquare, Star, Users, Settings } from "lucide-react";
+import { LayoutDashboard, MapPin, CalendarCheck, MessageSquare, Star, Users, Settings, Activity } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
-type Tab = "dashboard" | "trips" | "bookings" | "inquiries" | "reviews" | "users" | "settings";
+type Tab = "dashboard" | "trips" | "bookings" | "inquiries" | "reviews" | "users" | "settings" | "activity";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
@@ -24,6 +25,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "inquiries", label: "Inquiries", icon: <MessageSquare className="h-4 w-4" /> },
   { id: "reviews", label: "Reviews", icon: <Star className="h-4 w-4" /> },
   { id: "users", label: "Users", icon: <Users className="h-4 w-4" /> },
+  { id: "activity", label: "Activity", icon: <Activity className="h-4 w-4" /> },
   { id: "settings", label: "Settings", icon: <Settings className="h-4 w-4" /> },
 ];
 
@@ -73,6 +75,7 @@ function AdminPage() {
         {activeTab === "inquiries" && <AdminInquiries />}
         {activeTab === "reviews" && <AdminReviews />}
         {activeTab === "users" && <UserManagement />}
+        {activeTab === "activity" && <ActivityLogs />}
         {activeTab === "settings" && <AdminSettings />}
       </div>
     </div>

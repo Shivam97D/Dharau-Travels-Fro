@@ -2,6 +2,20 @@ const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+interface ActivityLog {
+  _id: string;
+  user?: string;
+  userName?: string;
+  userEmail?: string;
+  userRole?: string;
+  action: string;
+  resource?: string;
+  resourceId?: string;
+  meta?: Record<string, unknown>;
+  ip?: string;
+  createdAt: string;
+}
+
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -403,6 +417,17 @@ class ApiClient {
   // Admin: delete a Cloudinary asset
   async deleteMediaAsset(publicId: string, resourceType: "image" | "video" = "image") {
     return this.request("/admin/media", { method: "DELETE", body: JSON.stringify({ publicId, resourceType }) });
+  }
+
+  // Admin: activity logs
+  async getActivityLogs(params?: { page?: number; limit?: number; action?: string; search?: string }) {
+    const q = new URLSearchParams();
+    if (params?.page) q.set("page", String(params.page));
+    if (params?.limit) q.set("limit", String(params.limit));
+    if (params?.action) q.set("action", params.action);
+    if (params?.search) q.set("search", params.search);
+    const qs = q.toString();
+    return this.get<{ data: ActivityLog[]; total: number; page: number; pages: number }>(`/admin/activity-logs${qs ? `?${qs}` : ""}`);
   }
 
   // ── Notifications ──────────────────────────────────────────────────

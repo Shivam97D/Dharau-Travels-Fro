@@ -223,13 +223,16 @@ export function UserManagement() {
                         <select
                           value={user.role}
                           onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                          className={`rounded-full px-3 py-1 text-xs font-medium capitalize outline-none transition ${
+                          className={`rounded-full px-3 py-1 text-xs font-semibold capitalize outline-none transition cursor-pointer ${
                             user.role === "owner"
-                              ? "bg-purple-400/20 text-purple-200"
+                              ? "bg-purple-600/70 text-white border border-purple-400/40"
                               : user.role === "admin"
-                                ? "bg-blue-400/20 text-blue-200"
-                                : "bg-zinc-400/20 text-zinc-200"
+                                ? "bg-blue-600/70 text-white border border-blue-400/40"
+                                : "bg-zinc-600/60 text-zinc-100 border border-zinc-400/30"
                           }`}
+                          style={{
+                            backgroundColor: user.role === "owner" ? "rgba(147,51,234,0.7)" : user.role === "admin" ? "rgba(37,99,235,0.7)" : "rgba(82,82,91,0.6)"
+                          }}
                         >
                           <option value="user">User</option>
                           <option value="admin">Admin</option>
