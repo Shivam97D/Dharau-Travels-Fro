@@ -22,11 +22,18 @@ const FOLDERS = [
   { key: "dharavu/avatars", label: "Avatars",        type: "image" as const, max: 0,  purpose: "" },
 ];
 
-const uploadSlug: Record<string, string> = {
+// Single-file slug (fallback) and multi-file slug
+const singleSlug: Record<string, string> = {
   "dharavu/hero":    "hero-video",
   "dharavu/gallery": "gallery-image",
   "dharavu/trips":   "trip-image",
   "dharavu/avatars": "avatar",
+};
+const multiSlug: Record<string, "trip-images" | "gallery-images" | "hero-videos" | null> = {
+  "dharavu/hero":    "hero-videos",
+  "dharavu/gallery": "gallery-images",
+  "dharavu/trips":   "trip-images",
+  "dharavu/avatars": null, // avatars stay single
 };
 
 function fmtBytes(b: number) {
@@ -48,6 +55,7 @@ function MediaLibrary() {
   const [galleryImages, setGalleryImages] = useState<ConfigItem[]>([]);
   const [saving, setSaving] = useState(false);
 
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const folder = FOLDERS[folderIdx];
 
@@ -77,27 +85,46 @@ function MediaLibrary() {
   useEffect(() => { loadAssets(); }, [folderIdx]);
   useEffect(() => { loadConfig(); }, []);
 
-  // Upload new file to current folder
+  // Upload one or many files to current folder
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
     setUploading(true);
+    setUploadProgress({ done: 0, total: files.length });
+
     try {
-      const slug = uploadSlug[folder.key] ?? "image";
-      const form = new FormData();
-      form.append("file", file);
-      const headers: Record<string, string> = {};
-      const token = localStorage.getItem("token");
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-      const res = await fetch(`/api/admin/upload/${slug}`, { method: "POST", headers, body: form });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? "Upload failed");
-      toast.success("Uploaded!");
+      const batchSlug = multiSlug[folder.key];
+
+      if (batchSlug && files.length > 1) {
+        // Multi-file batch upload
+        const result = await api.uploadMediaBatch(files, batchSlug);
+        setUploadProgress({ done: files.length, total: files.length });
+        toast.success(`${result.length} file${result.length !== 1 ? "s" : ""} uploaded!`);
+      } else {
+        // Single file (or avatars which stay single)
+        for (let i = 0; i < files.length; i++) {
+          setUploadProgress({ done: i, total: files.length });
+          const form = new FormData();
+          form.append("file", files[i]);
+          const headers: Record<string, string> = {};
+          const token = localStorage.getItem("token");
+          if (token) headers["Authorization"] = `Bearer ${token}`;
+          const slug = singleSlug[folder.key] ?? "image";
+          const res = await fetch(`/api/admin/upload/${slug}`, { method: "POST", headers, body: form });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message ?? `Upload failed for ${files[i].name}`);
+        }
+        toast.success(
+          files.length === 1 ? "Uploaded!" : `${files.length} files uploaded!`,
+        );
+      }
+
       loadAssets();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
+      setUploadProgress(null);
       if (fileRef.current) fileRef.current.value = "";
     }
   };
@@ -181,11 +208,12 @@ function MediaLibrary() {
       </div>
 
       {/* Upload bar */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <input
           ref={fileRef}
           type="file"
           accept={folder.type === "video" ? "video/*" : "image/*"}
+          multiple={folder.key !== "dharavu/avatars"} // avatars stay single
           className="hidden"
           onChange={handleUpload}
         />
@@ -195,12 +223,25 @@ function MediaLibrary() {
           className="flex items-center gap-2 rounded-full gradient-aurora px-4 py-2 text-sm font-medium text-white transition hover:scale-105 disabled:opacity-50"
         >
           {uploading ? <TravelDots /> : <Upload className="h-4 w-4" />}
-          {uploading ? "Uploading…" : `Upload to ${folder.label}`}
+          {uploading
+            ? uploadProgress
+              ? `Uploading ${uploadProgress.done}/${uploadProgress.total}…`
+              : "Uploading…"
+            : `Upload to ${folder.label}`}
         </button>
+
         <button onClick={loadAssets} disabled={loadingAssets} className="grid h-8 w-8 place-items-center rounded-full glass transition hover:bg-white/10 disabled:opacity-50">
           <RefreshCw className={`h-4 w-4 ${loadingAssets ? "animate-spin" : ""}`} />
         </button>
+
         <span className="text-xs text-muted-foreground">{assets.length} file{assets.length !== 1 ? "s" : ""}</span>
+
+        {/* Multi-select hint */}
+        {folder.key !== "dharavu/avatars" && (
+          <span className="text-xs text-muted-foreground opacity-60">
+            · Select multiple files at once
+          </span>
+        )}
       </div>
 
       {/* Selection hint for configurable folders */}

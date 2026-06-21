@@ -436,6 +436,20 @@ class ApiClient {
     if (!res.ok || !data.success) throw new Error(data.message ?? "Upload failed");
     return data.url as string;
   }
+
+  async uploadMediaBatch(
+    files: File[],
+    slug: "trip-images" | "gallery-images" | "hero-videos",
+  ): Promise<{ url: string; publicId: string }[]> {
+    const form = new FormData();
+    files.forEach((f) => form.append("files", f));
+    const headers: Record<string, string> = {};
+    if (this.token) headers["Authorization"] = `Bearer ${this.token}`;
+    const res = await fetch(`${this.baseUrl}/admin/upload/${slug}`, { method: "POST", headers, body: form });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message ?? "Upload failed");
+    return data.files as { url: string; publicId: string }[];
+  }
 }
 
 export const api = new ApiClient(API_URL);

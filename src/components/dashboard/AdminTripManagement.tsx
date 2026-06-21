@@ -625,9 +625,10 @@ export function AdminTripManagement() {
                           if (!files.length) return;
                           setUploading(true);
                           try {
-                            const urls = await Promise.all(files.map((f) => api.uploadMedia(f, "image")));
+                            const results = await api.uploadMediaBatch(files, "trip-images");
+                            const urls = results.map((r) => r.url);
                             setFormData((prev) => ({ ...prev, images: [...prev.images, ...urls] }));
-                            toast.success(`${urls.length} image(s) uploaded`);
+                            toast.success(`${urls.length} image${urls.length !== 1 ? "s" : ""} uploaded`);
                           } catch (err: unknown) {
                             toast.error(err instanceof Error ? err.message : "Upload failed");
                           } finally {
