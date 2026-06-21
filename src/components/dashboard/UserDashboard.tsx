@@ -86,7 +86,13 @@ export function UserDashboard() {
           ),
         );
       } else if (result.status === "error") {
-        toast.error(result.message);
+        // If already paid (e.g. webhook confirmed while page was stale), refresh instead of showing error
+        if (result.message?.toLowerCase().includes("already paid")) {
+          toast.success("Booking is already confirmed! Refreshing…");
+          load();
+        } else {
+          toast.error(result.message);
+        }
       }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Could not start payment");
