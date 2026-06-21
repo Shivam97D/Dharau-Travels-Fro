@@ -32,7 +32,7 @@ interface TripFormData {
   country: string;
   categories: string[];
   duration: { days: number; nights: number };
-  price: { amount: number; currency: string; originalPrice?: number; discount?: number };
+  price: { amount: number; currency: string; originalPrice?: number; discount?: number; taxPercent?: number; childrenPricePercent?: number };
   maxGroupSize: number;
   availableSeats: number;
   difficulty: string;
@@ -54,7 +54,7 @@ const EMPTY_FORM: TripFormData = {
   country: "",
   categories: ["adventure"],
   duration: { days: 7, nights: 6 },
-  price: { amount: 0, currency: "INR", originalPrice: undefined, discount: undefined },
+  price: { amount: 0, currency: "INR", originalPrice: undefined, discount: undefined, taxPercent: 0, childrenPricePercent: 100 },
   maxGroupSize: 15,
   availableSeats: 15,
   difficulty: "moderate",
@@ -639,13 +639,41 @@ export function AdminTripManagement() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium">Discount (₹, optional)</label>
+                  <label className="mb-2 block text-sm font-medium">Discount (₹ flat, optional)</label>
                   <input
                     type="number"
                     value={formData.price.discount ?? ""}
                     onChange={(e) => setFormData({ ...formData, price: { ...formData.price, discount: e.target.value ? Number(e.target.value) : undefined } })}
                     className="w-full rounded-2xl bg-white/5 px-4 py-2 outline-none transition focus:bg-white/10"
-                    placeholder="10000"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Tax / GST (%)</label>
+                  <p className="mb-2 text-xs text-muted-foreground">0 = no tax · 5 = 5% GST · 18 = 18% GST</p>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={formData.price.taxPercent ?? 0}
+                    onChange={(e) => setFormData({ ...formData, price: { ...formData.price, taxPercent: Number(e.target.value) } })}
+                    className="w-full rounded-2xl bg-white/5 px-4 py-2 outline-none transition focus:bg-white/10"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Children price (%)</label>
+                  <p className="mb-2 text-xs text-muted-foreground">% of adult price · 100 = same price · 50 = half price · 0 = free</p>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={formData.price.childrenPricePercent ?? 100}
+                    onChange={(e) => setFormData({ ...formData, price: { ...formData.price, childrenPricePercent: Number(e.target.value) } })}
+                    className="w-full rounded-2xl bg-white/5 px-4 py-2 outline-none transition focus:bg-white/10"
+                    placeholder="100"
                   />
                 </div>
 

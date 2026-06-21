@@ -77,9 +77,12 @@ export function BookingModal({
   const [submitting, setSubmitting] = useState<"pay" | "request" | null>(null);
 
   const totalTravelers = adults + children + infants;
-  const basePrice = trip.price.amount * adults + trip.price.amount * 0.7 * children;
-  const tax = basePrice * 0.1;
-  const total = basePrice + tax - (trip.price.discount || 0);
+  const childrenRate = (trip.price.childrenPricePercent ?? 100) / 100;
+  const taxRate = (trip.price.taxPercent ?? 0) / 100;
+  const basePrice = trip.price.amount * adults + trip.price.amount * childrenRate * children;
+  const tax = Math.round(basePrice * taxRate * 100) / 100;
+  const discount = trip.price.discount || 0;
+  const total = Math.max(0, basePrice + tax - discount);
 
   // Creates the booking, returns its id — shared by both flows.
   const createPendingBooking = async (): Promise<string | null> => {
@@ -245,21 +248,26 @@ export function BookingModal({
                 {/* Price estimate */}
                 <div className="mt-5 space-y-1.5 rounded-2xl bg-white/5 p-4 text-sm">
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Base ({adults} adult{adults !== 1 ? "s" : ""}{children ? `, ${children} child` : ""})</span>
+                    <span>
+                      {adults} adult{adults !== 1 ? "s" : ""}
+                      {children > 0 && ` + ${children} child${children !== 1 ? "ren" : ""}${childrenRate < 1 ? ` (${Math.round(childrenRate * 100)}% rate)` : ""}`}
+                    </span>
                     <span>{formatINR(basePrice)}</span>
                   </div>
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Taxes & fees (10%)</span>
-                    <span>{formatINR(tax)}</span>
-                  </div>
-                  {trip.price.discount ? (
+                  {tax > 0 && (
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Tax ({Math.round(taxRate * 100)}%)</span>
+                      <span>{formatINR(tax)}</span>
+                    </div>
+                  )}
+                  {discount > 0 && (
                     <div className="flex justify-between text-emerald-400">
                       <span>Discount</span>
-                      <span>−{formatINR(trip.price.discount)}</span>
+                      <span>−{formatINR(discount)}</span>
                     </div>
-                  ) : null}
+                  )}
                   <div className="mt-1 flex justify-between border-t border-white/10 pt-2 text-base font-bold">
-                    <span>Estimated total</span>
+                    <span>Total</span>
                     <span>{formatINR(total)}</span>
                   </div>
                 </div>

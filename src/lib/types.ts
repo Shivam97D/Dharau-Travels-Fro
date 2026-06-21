@@ -29,6 +29,8 @@ export interface Trip {
     currency: string;
     originalPrice?: number;
     discount?: number;
+    taxPercent?: number;
+    childrenPricePercent?: number;
   };
   images: {
     url: string;
