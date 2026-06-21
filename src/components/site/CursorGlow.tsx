@@ -20,10 +20,10 @@ export function CursorGlow() {
   return (
     <motion.div
       aria-hidden
-      className="pointer-events-none fixed z-[100] h-[420px] w-[420px] rounded-full mix-blend-screen"
+      className="pointer-events-none fixed z-[100] h-10 w-10 rounded-full mix-blend-screen"
       style={{
         background:
-          "radial-gradient(circle, oklch(0.78 0.22 35 / 0.35), oklch(0.6 0.22 295 / 0.15) 40%, transparent 70%)",
+          "radial-gradient(circle, oklch(0.78 0.22 35 / 0.55), oklch(0.6 0.22 295 / 0.25) 60%, transparent 100%)",
         translateX: "-50%",
         translateY: "-50%",
       }}

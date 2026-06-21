@@ -138,7 +138,7 @@ export function PlannerCTA() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="mt-1 flex w-full items-center justify-center gap-2 rounded-full bg-white py-3 text-sm font-bold text-foreground shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
+                    className="mt-1 flex w-full items-center justify-center gap-2 rounded-full bg-white py-3 text-sm font-bold text-zinc-900 shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
                   >
                     {submitting ? <TravelDots /> : <Send className="h-4 w-4" />}
                     {submitting ? "Sending…" : "Send my request"}

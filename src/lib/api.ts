@@ -263,8 +263,13 @@ class ApiClient {
     return this.get(`/admin/trips${queryString}`);
   }
 
-  async getDashboardStats() {
-    return this.get("/admin/stats");
+  async getDashboardStats(range?: string) {
+    const qs = range ? `?range=${range}` : "";
+    return this.get(`/admin/stats${qs}`);
+  }
+
+  async clearTestData() {
+    return this.delete("/admin/clear-test-data");
   }
 
   async getAllBookings(params?: Record<string, any>) {

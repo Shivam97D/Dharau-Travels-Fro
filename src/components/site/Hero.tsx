@@ -20,11 +20,10 @@ export function Hero() {
   const [videos, setVideos] = useState<string[]>(LOCAL_FALLBACK);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
-  // Fetch hero videos from site config; fall back to local files
   useEffect(() => {
     api.getSiteConfig()
-      .then((res) => {
-        const urls = res.data?.heroVideos?.map((v) => v.url).filter(Boolean) ?? [];
+      .then((res: any) => {
+        const urls = res.data?.heroVideos?.map((v: any) => v.url).filter(Boolean) ?? [];
         if (urls.length > 0) setVideos(urls);
       })
       .catch(() => {});
@@ -76,18 +75,12 @@ export function Hero() {
             />
           ))}
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-background" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 via-transparent to-secondary/20 mix-blend-overlay" />
-      </motion.div>
 
-      {/* Floating blobs */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -left-24 top-1/3 h-72 w-72 rounded-full gradient-sunset opacity-30 blur-3xl animate-blob" />
-        <div
-          className="absolute right-0 top-20 h-80 w-80 rounded-full gradient-ocean opacity-30 blur-3xl animate-blob"
-          style={{ animationDelay: "4s" }}
-        />
-      </div>
+        {/* Top: just enough dark for nav text to read */}
+        <div className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/40 to-transparent" />
+        {/* Bottom: dark-mode only fade into page background */}
+        <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-transparent to-transparent dark:from-background" />
+      </motion.div>
 
       <motion.div
         style={{ opacity }}
@@ -159,9 +152,7 @@ export function Hero() {
             Plan custom trip
           </a>
         </motion.div>
-
       </motion.div>
-
     </section>
   );
 }

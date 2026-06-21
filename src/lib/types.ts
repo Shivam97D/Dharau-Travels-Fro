@@ -179,6 +179,15 @@ export interface DashboardStats {
     revenue: number;
     count: number;
   }[];
+  chartData: {
+    label: string;
+    revenue: number;
+    bookings: number;
+  }[];
+  periodStats: {
+    revenue: { current: number; previous: number; change: number };
+    bookings: { current: number; previous: number; change: number };
+  };
   categoryDistribution: {
     _id: string;
     count: number;
