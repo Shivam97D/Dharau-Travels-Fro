@@ -387,7 +387,11 @@ class ApiClient {
   }
 
   // Admin: update site config
-  async updateSiteConfig(data: { heroVideos?: { url: string; publicId: string; label: string }[]; galleryImages?: { url: string; publicId: string; label: string }[] }) {
+  async updateSiteConfig(data: {
+    heroVideos?: { url: string; publicId: string; label: string }[];
+    galleryImages?: { url: string; publicId: string; label: string }[];
+    sessionSettings?: { sessionDurationDays: number; requireEmailVerification: boolean };
+  }) {
     return this.put("/admin/site-config", data);
   }
 
@@ -439,8 +443,8 @@ class ApiClient {
 
   async uploadMediaBatch(
     files: File[],
-    slug: "trip-images" | "gallery-images" | "hero-videos",
-  ): Promise<{ url: string; publicId: string }[]> {
+    slug: "trip-images" | "trip-media" | "gallery-images" | "hero-videos",
+  ): Promise<{ url: string; publicId: string; resourceType?: string }[]> {
     const form = new FormData();
     files.forEach((f) => form.append("files", f));
     const headers: Record<string, string> = {};

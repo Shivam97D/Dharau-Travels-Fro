@@ -1,9 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-   Mail, Download, Users, Send, Eye, EyeOff,
+  Mail, Download, Users, Send, Eye, EyeOff,
   CheckSquare, Square, Video, Image, Trash2, Star,
-  Upload, RefreshCw, GripVertical, X, Check,
+  Upload, RefreshCw, GripVertical, X, Check, Shield, Clock, Save,
 } from "lucide-react";
 import { TravelLoader, TravelDots } from "@/components/ui/TravelLoader";
 import { toast } from "sonner";
@@ -536,8 +536,130 @@ function NewsletterPanel() {
   );
 }
 
+// ─── Security / Session panel ─────────────────────────────────────────────────
+function SecurityPanel() {
+  const [sessionDays, setSessionDays] = useState(7);
+  const [requireVerification, setRequireVerification] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    api.getSiteConfig()
+      .then((res) => {
+        const s = (res.data as any)?.sessionSettings;
+        if (s) {
+          setSessionDays(s.sessionDurationDays ?? 7);
+          setRequireVerification(s.requireEmailVerification ?? true);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await api.updateSiteConfig({
+        sessionSettings: { sessionDurationDays: sessionDays, requireEmailVerification: requireVerification },
+      });
+      toast.success("Session settings saved — applies to new logins immediately.");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div className="flex justify-center py-12"><TravelLoader size="sm" /></div>;
+
+  return (
+    <div className="space-y-5">
+      {/* Session duration */}
+      <div className="rounded-3xl glass p-6 space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="grid h-10 w-10 place-items-center rounded-xl gradient-ocean"><Clock className="h-5 w-5 text-white" /></div>
+          <div>
+            <h3 className="font-bold">Session Duration</h3>
+            <p className="text-xs text-muted-foreground">How long users stay logged in after signing in</p>
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          {[
+            { days: 1,  label: "1 day",    desc: "Highest security" },
+            { days: 7,  label: "7 days",   desc: "Recommended" },
+            { days: 14, label: "14 days",  desc: "Balanced" },
+            { days: 30, label: "30 days",  desc: "Convenient" },
+            { days: 90, label: "90 days",  desc: "Long-term" },
+            { days: 365,label: "1 year",   desc: "Stay logged in" },
+          ].map(({ days, label, desc }) => (
+            <button
+              key={days}
+              onClick={() => setSessionDays(days)}
+              className={`flex flex-col items-start rounded-2xl border p-4 text-left transition ${
+                sessionDays === days
+                  ? "border-primary bg-primary/10 text-foreground"
+                  : "border-border glass hover:border-primary/30"
+              }`}
+            >
+              <span className="text-base font-bold">{label}</span>
+              <span className="text-xs text-muted-foreground">{desc}</span>
+              {days === 7 && <span className="mt-1 rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-semibold text-primary">Default</span>}
+            </button>
+          ))}
+        </div>
+
+        <div className="rounded-2xl bg-amber-400/10 border border-amber-400/20 px-4 py-2.5 text-xs text-amber-300">
+          Changing session duration applies to <strong>new logins</strong> only. Existing sessions keep their original expiry.
+        </div>
+      </div>
+
+      {/* Email verification toggle */}
+      <div className="rounded-3xl glass p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="grid h-10 w-10 place-items-center rounded-xl gradient-sunset"><Shield className="h-5 w-5 text-white" /></div>
+          <div>
+            <h3 className="font-bold">Email Verification</h3>
+            <p className="text-xs text-muted-foreground">Require users to verify email before logging in</p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setRequireVerification((v) => !v)}
+          className={`flex w-full items-center justify-between rounded-2xl border p-4 text-left transition ${
+            requireVerification ? "border-emerald-500/40 bg-emerald-500/5" : "border-border glass"
+          }`}
+        >
+          <div>
+            <p className="text-sm font-semibold">{requireVerification ? "Verification required" : "Verification optional"}</p>
+            <p className="text-xs text-muted-foreground">
+              {requireVerification
+                ? "Users must verify email via OTP before accessing their account"
+                : "Users can log in without verifying email (not recommended)"}
+            </p>
+          </div>
+          <div className={`ml-4 h-6 w-11 shrink-0 rounded-full transition-colors ${requireVerification ? "bg-emerald-500" : "bg-border"}`}>
+            <div className={`mt-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${requireVerification ? "translate-x-5.5 ml-0.5" : "ml-0.5"}`} />
+          </div>
+        </button>
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          onClick={save}
+          disabled={saving}
+          className="flex items-center gap-2 rounded-full gradient-sunset px-6 py-3 text-sm font-semibold text-white shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
+        >
+          {saving ? <TravelDots /> : <Save className="h-4 w-4" />}
+          Save Security Settings
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main AdminSettings component ────────────────────────────────────────────
-type SettingsTab = "media" | "newsletter" | "info";
+type SettingsTab = "media" | "newsletter" | "security" | "info";
 
 export function AdminSettings() {
   const [tab, setTab] = useState<SettingsTab>("media");
@@ -550,8 +672,8 @@ export function AdminSettings() {
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-2">
-        {([ ["media", "Media Library"], ["newsletter", "Newsletter"], ["info", "Site Info"], ] as [SettingsTab, string][]).map(([key, label]) => (
+      <div className="flex flex-wrap gap-2">
+        {([ ["media", "Media Library"], ["newsletter", "Newsletter"], ["security", "Security"], ["info", "Site Info"], ] as [SettingsTab, string][]).map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${tab === key ? "gradient-sunset text-white shadow-glow" : "glass hover:bg-white/10"}`}>
             {label}
           </button>
@@ -562,6 +684,7 @@ export function AdminSettings() {
         <motion.div key={tab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
           {tab === "media" && <MediaLibrary />}
           {tab === "newsletter" && <NewsletterPanel />}
+          {tab === "security" && <SecurityPanel />}
           {tab === "info" && (
             <div className="rounded-3xl glass p-6 space-y-3 text-sm text-muted-foreground">
               <h3 className="text-lg font-bold text-foreground">Site & Contact Configuration</h3>

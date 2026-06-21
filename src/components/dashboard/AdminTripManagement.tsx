@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { isMediaVideo } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -688,15 +689,16 @@ export function AdminTripManagement() {
                       <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/*"
+                        accept="image/*,video/*"
                         multiple
                         className="hidden"
                         onChange={async (e) => {
                           const files = Array.from(e.target.files ?? []);
                           if (!files.length) return;
                           setUploading(true);
+                          const hasVideo = files.some((f) => f.type.startsWith("video/"));
                           try {
-                            const results = await api.uploadMediaBatch(files, "trip-images");
+                            const results = await api.uploadMediaBatch(files, hasVideo ? "trip-media" : "trip-images");
                             const urls = results.map((r) => r.url);
                             setFormData((prev) => ({ ...prev, images: [...prev.images, ...urls] }));
                             toast.success(`${urls.length} image${urls.length !== 1 ? "s" : ""} uploaded`);
@@ -732,7 +734,14 @@ export function AdminTripManagement() {
                       <div className="flex flex-wrap gap-2">
                         {formData.images.map((url, idx) => (
                           <div key={idx} className="relative">
-                            <img src={url} alt={`img-${idx}`} className="h-16 w-24 rounded-xl object-cover" onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")} />
+                            {isMediaVideo(url) ? (
+                              <video src={url} className="h-16 w-24 rounded-xl object-cover" muted />
+                            ) : (
+                              <img src={url} alt={`img-${idx}`} className="h-16 w-24 rounded-xl object-cover" onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")} />
+                            )}
+                            {idx === 0 && (
+                              <span className="absolute bottom-0 left-0 right-0 rounded-b-xl bg-black/60 text-center text-[9px] text-white">Primary</span>
+                            )}
                             <button
                               type="button"
                               onClick={() => setFormData((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }))}

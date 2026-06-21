@@ -1,12 +1,42 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, Lock, User, Plane, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
+import { X, Mail, Lock, User, Plane, AlertCircle, CheckCircle2, RefreshCw, ShieldCheck } from "lucide-react";
 import { TravelDots } from "@/components/ui/TravelLoader";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import api from "@/lib/api";
+import { getPasswordChecks, validatePassword } from "@/lib/utils";
 
 function pingServer() {
   fetch("/api/health").catch(() => {});
+}
+
+function PasswordStrength({ password }: { password: string }) {
+  const checks = getPasswordChecks(password);
+  const score = checks.filter((c) => c.pass).length;
+  const label = score <= 1 ? "Weak" : score <= 2 ? "Fair" : score <= 3 ? "Good" : score <= 4 ? "Strong" : "Excellent";
+  const barColor =
+    score <= 1 ? "bg-red-500" : score <= 2 ? "bg-orange-500" : score <= 3 ? "bg-amber-400" : score <= 4 ? "bg-yellow-400" : "bg-emerald-500";
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div
+            key={i}
+            className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= score ? barColor : "bg-border"}`}
+          />
+        ))}
+        <span className="ml-1 text-[11px] text-muted-foreground">{label}</span>
+      </div>
+      <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+        {checks.map((c) => (
+          <span key={c.label} className={`text-[11px] transition-colors ${c.pass ? "text-emerald-400" : "text-muted-foreground"}`}>
+            {c.pass ? "✓" : "·"} {c.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 type Mode = "login" | "register" | "forgot" | "otp";
@@ -88,8 +118,27 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
     }
   };
 
+  const validateForm = (): string | null => {
+    if (registerOtpSent) return null; // Already past registration, no re-validation
+    if (mode === "register") {
+      if (!name.trim() || name.trim().length < 2) return "Name must be at least 2 characters";
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Enter a valid email address";
+      return validatePassword(password);
+    }
+    if (mode === "login") {
+      if (!email) return "Email is required";
+      if (!password) return "Password is required";
+    }
+    if (mode === "forgot") {
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Enter a valid email address";
+    }
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validationError = validateForm();
+    if (validationError) { setError(validationError); return; }
     setError("");
     setLoading(true);
     setWakingUp(false);
@@ -98,7 +147,22 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
 
     try {
       if (mode === "login") {
-        await login(email, password);
+        if (registerOtpSent) {
+          // Unverified account OTP verification
+          const code = otp.join("");
+          if (code.length < 6) { setError("Enter all 6 digits"); setLoading(false); return; }
+          await api.verifyLoginOtp(otpEmail, code);
+          await refreshUser();
+          onClose();
+          return;
+        }
+        const result = await login(email, password);
+        if (result?.requiresVerification) {
+          setOtpEmail(result.email || email);
+          setRegisterOtpSent(true);
+          setTimeout(() => otpRefs.current[0]?.focus(), 80);
+          return;
+        }
         onClose();
       } else if (mode === "register") {
         if (registerOtpSent) {
@@ -158,10 +222,15 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
     : "Reset your password";
 
   const subtitle =
-    mode === "login" ? "Sign in to continue your adventure."
-    : mode === "register" ? "Create an account to start planning."
-    : mode === "otp" ? `Enter the 6-digit code sent to ${otpEmail}`
-    : "Enter your email and we'll send you a reset link.";
+    registerOtpSent
+      ? `Enter the 6-digit code sent to ${otpEmail}`
+      : mode === "login"
+        ? "Sign in to continue your adventure."
+        : mode === "register"
+          ? "Create an account to start planning."
+          : mode === "otp"
+            ? `Enter the 6-digit code sent to ${otpEmail}`
+            : "Enter your email and we'll send you a reset link.";
 
   return (
     <AnimatePresence>
@@ -339,9 +408,14 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                       />
                     )}
 
-                    {/* Inline OTP for registration — appears below password */}
+                    {/* Password strength indicator */}
+                    {mode === "register" && !registerOtpSent && password && (
+                      <PasswordStrength password={password} />
+                    )}
+
+                    {/* Inline OTP for registration or unverified-login — appears below password */}
                     <AnimatePresence>
-                      {mode === "register" && registerOtpSent && (
+                      {registerOtpSent && (
                         <motion.div
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
@@ -412,7 +486,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                     >
                       {loading && <TravelDots />}
                       {mode === "login"
-                        ? "Sign in"
+                        ? registerOtpSent ? "Verify & Sign in" : "Sign in"
                         : mode === "register"
                           ? registerOtpSent ? "Verify & Join" : "Create account"
                           : "Send reset link"}

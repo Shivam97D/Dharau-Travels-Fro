@@ -6,7 +6,7 @@ import type { User } from "./types";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ requiresVerification?: boolean; email?: string }>;
   register: (name: string, email: string, password: string) => Promise<{ requiresOtp: boolean; email?: string }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -53,11 +53,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const response = await api.login(email, password);
+    // Unverified account — backend sent OTP, frontend must prompt for it
+    if ((response as any).requiresVerification) {
+      return { requiresVerification: true, email: (response as any).email as string };
+    }
     if (response.success && response.data) {
       const userData = response.data as User;
       setUser(userData);
       toast.success(`Welcome back, ${userData.name?.split(" ")[0]}! ✈️`);
     }
+    return {};
   };
 
   const register = async (name: string, email: string, password: string) => {

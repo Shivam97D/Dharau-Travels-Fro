@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Users2, User, Mountain, Tent, Zap, MapPin, Clock, Star } from "lucide-react";
+import { Users2, User, Mountain, Tent, Zap, MapPin, Clock, Star, Play } from "lucide-react";
+import { isMediaVideo } from "@/lib/utils";
 import { TravelLoader } from "@/components/ui/TravelLoader";
 import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
@@ -58,11 +59,14 @@ function TripCard({ trip }: { trip: Trip }) {
       <Link to="/trips/$slug" params={{ slug: trip.slug }} className="flex flex-1 flex-col">
         <div className="relative h-40 overflow-hidden bg-muted">
           {img ? (
-            <img
-              src={img.url}
-              alt={trip.title}
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-            />
+            isMediaVideo(img.url) ? (
+              <>
+                <video src={img.url} muted autoPlay loop playsInline className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                <div className="absolute right-2 top-2 rounded-full bg-black/50 p-1 backdrop-blur-sm"><Play className="h-3 w-3 fill-white text-white" /></div>
+              </>
+            ) : (
+              <img src={img.url} alt={trip.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+            )
           ) : (
             <div className="h-full gradient-aurora opacity-30" />
           )}
