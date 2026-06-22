@@ -893,7 +893,7 @@ type SettingsTab = "media" | "newsletter" | "payment" | "security" | "danger";
 
 export function AdminSettings() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin" || user?.role === "owner";
+  const isAdmin = user?.role === "admin";
 
   const [tab, setTab] = useState<SettingsTab>("media");
 
