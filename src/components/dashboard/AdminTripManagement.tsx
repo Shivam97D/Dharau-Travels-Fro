@@ -169,7 +169,8 @@ export function AdminTripManagement() {
   const [formData, setFormData] = useState<TripFormData>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [qrUploading, setQrUploading] = useState(false);
+  const [qrFile, setQrFile] = useState<File | null>(null);
+  const [qrPreview, setQrPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const qrFileRef = useRef<HTMLInputElement>(null);
 
@@ -200,6 +201,10 @@ export function AdminTripManagement() {
       setSubmitting(true);
       const response = await api.createTrip(toTripPayload(formData));
       if (response.success) {
+        const newTrip = response.data as { _id: string } | undefined;
+        if (qrFile && newTrip?._id) {
+          try { await api.uploadPaymentQR(newTrip._id, qrFile); } catch { /* non-fatal */ }
+        }
         toast.success("Trip created");
         setShowCreateModal(false);
         fetchTrips();
@@ -218,6 +223,9 @@ export function AdminTripManagement() {
       setSubmitting(true);
       const response = await api.updateTrip(selectedTrip._id, toTripPayload(formData));
       if (response.success) {
+        if (qrFile) {
+          try { await api.uploadPaymentQR(selectedTrip._id, qrFile); } catch { /* non-fatal */ }
+        }
         toast.success("Trip updated");
         setShowEditModal(false);
         fetchTrips();
@@ -264,29 +272,21 @@ export function AdminTripManagement() {
       excludes: trip.excludes || [],
       tags: trip.tags || [],
     });
+    setQrFile(null);
+    setQrPreview(null);
     setShowEditModal(true);
   };
 
   const resetForm = () => {
     setFormData(EMPTY_FORM);
     setSelectedTrip(null);
+    setQrFile(null);
+    setQrPreview(null);
   };
 
-  const handleQrUpload = async (file: File) => {
-    if (!selectedTrip) return;
-    setQrUploading(true);
-    try {
-      const res = await api.uploadPaymentQR(selectedTrip._id, file) as any;
-      toast.success("Payment QR uploaded successfully");
-      if (res?.data?.paymentQR) {
-        setSelectedTrip({ ...selectedTrip, paymentQR: res.data.paymentQR });
-      }
-      fetchTrips();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "QR upload failed");
-    } finally {
-      setQrUploading(false);
-    }
+  const pickQrFile = (file: File) => {
+    setQrFile(file);
+    setQrPreview(URL.createObjectURL(file));
   };
 
   const filteredTrips = trips.filter((trip) =>
@@ -696,33 +696,34 @@ export function AdminTripManagement() {
                   />
                 </div>
 
-                {/* Payment QR upload — only available when editing an existing trip */}
+                {/* Payment QR */}
                 <div>
                   <label className="mb-1 block text-sm font-medium">Payment QR Code</label>
-                  <p className="mb-2 text-xs text-muted-foreground">Upload a UPI QR image for this trip · shown to users during checkout</p>
-                  {showEditModal && selectedTrip ? (
-                    <div className="space-y-2">
-                      {selectedTrip.paymentQR?.url && (
-                        <div className="flex items-center gap-3 rounded-2xl bg-white/5 p-3">
-                          <img src={selectedTrip.paymentQR.url} alt="Current QR" className="h-16 w-16 rounded-xl bg-white object-contain p-1" />
-                          <div className="text-xs text-muted-foreground">
-                            <p className="font-medium text-foreground">QR uploaded</p>
-                            <p>Click below to replace</p>
-                          </div>
-                        </div>
-                      )}
-                      <input ref={qrFileRef} type="file" accept="image/*" className="hidden"
-                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleQrUpload(f); e.target.value = ""; }} />
-                      <button type="button" onClick={() => qrFileRef.current?.click()} disabled={qrUploading}
-                        className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 py-3 text-sm text-muted-foreground transition hover:border-white/40 hover:bg-white/5 disabled:opacity-50">
-                        <Upload className="h-4 w-4" />
-                        {qrUploading ? "Uploading…" : selectedTrip.paymentQR?.url ? "Replace QR image" : "Upload QR image"}
+                  <p className="mb-2 text-xs text-muted-foreground">Saved together with the trip · shown to users at checkout</p>
+                  <input ref={qrFileRef} type="file" accept="image/*" className="hidden"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) pickQrFile(f); e.target.value = ""; }} />
+                  {qrPreview || selectedTrip?.paymentQR?.url ? (
+                    <div className="flex items-center gap-3 rounded-2xl bg-white/5 p-3">
+                      <img
+                        src={qrPreview ?? selectedTrip?.paymentQR?.url}
+                        alt="QR preview"
+                        className="h-16 w-16 shrink-0 rounded-xl bg-white object-contain p-1"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{qrPreview ? "New QR selected" : "QR uploaded"}</p>
+                        <p className="text-xs text-muted-foreground">{qrPreview ? "Will be saved when you click Save" : "Click to replace"}</p>
+                      </div>
+                      <button type="button" onClick={() => qrFileRef.current?.click()}
+                        className="shrink-0 rounded-full border border-white/15 px-3 py-1.5 text-xs font-medium transition hover:bg-white/10">
+                        Replace
                       </button>
                     </div>
                   ) : (
-                    <p className="rounded-2xl bg-white/5 px-4 py-3 text-xs text-muted-foreground">
-                      Save the trip first, then re-open it to upload the QR image.
-                    </p>
+                    <button type="button" onClick={() => qrFileRef.current?.click()}
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 py-4 text-sm text-muted-foreground transition hover:border-white/40 hover:bg-white/5">
+                      <Upload className="h-4 w-4" />
+                      Upload QR image
+                    </button>
                   )}
                 </div>
 
