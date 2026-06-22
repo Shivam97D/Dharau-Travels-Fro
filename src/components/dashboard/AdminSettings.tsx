@@ -889,12 +889,16 @@ function DangerZone() {
 }
 
 // ─── Main AdminSettings component ────────────────────────────────────────────
-type SettingsTab = "media" | "newsletter" | "security" | "payment" | "info" | "danger";
+type SettingsTab = "media" | "newsletter" | "payment" | "security" | "danger";
 
 export function AdminSettings() {
-  const [tab, setTab] = useState<SettingsTab>("media");
   const { user } = useAuth();
-  const isAdminOrOwner = user?.role === "admin" || user?.role === "owner";
+  const isAdmin = user?.role === "admin" || user?.role === "owner";
+
+  const [tab, setTab] = useState<SettingsTab>("media");
+
+  // If current tab becomes inaccessible (shouldn't happen but guard it)
+  const visibleTab = (!isAdmin && (tab === "security" || tab === "danger")) ? "media" : tab;
 
   return (
     <div className="space-y-6">
@@ -905,40 +909,33 @@ export function AdminSettings() {
 
       {/* Tab bar */}
       <div className="flex flex-wrap gap-2">
-        {([ ["media", "Media Library"], ["newsletter", "Newsletter"], ["security", "Security"], ["payment", "Payment"], ["info", "Site Info"], ] as [SettingsTab, string][]).map(([key, label]) => (
-          <button key={key} onClick={() => setTab(key)} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${tab === key ? "gradient-sunset text-white shadow-glow" : "glass hover:bg-white/10"}`}>
+        {([ ["media", "Media Library"], ["newsletter", "Newsletter"], ["payment", "Payment"], ] as [SettingsTab, string][]).map(([key, label]) => (
+          <button key={key} onClick={() => setTab(key)}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${visibleTab === key ? "gradient-sunset text-white shadow-glow" : "glass hover:bg-white/10"}`}>
             {label}
           </button>
         ))}
-        {isAdminOrOwner && (
-          <button
-            onClick={() => setTab("danger")}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${tab === "danger" ? "bg-red-600/80 text-white" : "border border-red-500/30 text-red-400 hover:bg-red-500/10"}`}
-          >
-            Danger Zone
-          </button>
+        {isAdmin && (
+          <>
+            <button onClick={() => setTab("security")}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${visibleTab === "security" ? "gradient-sunset text-white shadow-glow" : "glass hover:bg-white/10"}`}>
+              Security
+            </button>
+            <button onClick={() => setTab("danger")}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${visibleTab === "danger" ? "bg-red-600/80 text-white" : "border border-red-500/30 text-red-400 hover:bg-red-500/10"}`}>
+              Danger Zone
+            </button>
+          </>
         )}
       </div>
 
       <AnimatePresence mode="wait">
-        <motion.div key={tab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-          {tab === "media" && <MediaLibrary />}
-          {tab === "newsletter" && <NewsletterPanel />}
-          {tab === "security" && <SecurityPanel />}
-          {tab === "payment" && <PaymentSettings />}
-          {tab === "danger" && isAdminOrOwner && <DangerZone />}
-          {tab === "info" && (
-            <div className="rounded-3xl glass p-6 space-y-3 text-sm text-muted-foreground">
-              <h3 className="text-lg font-bold text-foreground">Site & Contact Configuration</h3>
-              <div className="flex flex-wrap gap-2"><span className="font-medium text-foreground">Email:</span><span>dharavujourney@gmail.com</span></div>
-              <div className="flex flex-wrap gap-2"><span className="font-medium text-foreground">Phones:</span><span>+91 95792 65920 · +91 93568 01338</span></div>
-              <div className="flex flex-wrap gap-2"><span className="font-medium text-foreground">Instagram:</span><a href="https://www.instagram.com/dharavu_journey" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@dharavu_journey</a></div>
-              <div className="flex flex-wrap gap-2"><span className="font-medium text-foreground">Featured trips:</span><span>Edit any trip → toggle the Featured checkbox</span></div>
-              <div className="mt-4 rounded-2xl bg-amber-400/10 border border-amber-400/20 px-4 py-3 text-xs text-amber-300">
-                <strong>Razorpay reminder:</strong> Add webhook at dashboard → Settings → Webhooks → URL: <code>/api/payments/webhook</code> → event: payment.captured → copy the secret → add RAZORPAY_WEBHOOK_SECRET to Render env.
-              </div>
-            </div>
-          )}
+        <motion.div key={visibleTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+          {visibleTab === "media" && <MediaLibrary />}
+          {visibleTab === "newsletter" && <NewsletterPanel />}
+          {visibleTab === "payment" && <PaymentSettings />}
+          {visibleTab === "security" && isAdmin && <SecurityPanel />}
+          {visibleTab === "danger" && isAdmin && <DangerZone />}
         </motion.div>
       </AnimatePresence>
     </div>
