@@ -272,6 +272,44 @@ class ApiClient {
     return this.delete("/admin/clear-test-data");
   }
 
+  async getPendingPayments() {
+    return this.get("/admin/pending-payments");
+  }
+
+  async adminVerifyPayment(bookingId: string, action: "confirm" | "reject", note?: string) {
+    return this.put(`/admin/bookings/${bookingId}/verify-payment`, { action, note });
+  }
+
+  async uploadPaymentQR(tripId: string, file: File) {
+    const form = new FormData();
+    form.append("qr", file);
+    const headers: Record<string, string> = {};
+    if (this.token) headers["Authorization"] = `Bearer ${this.token}`;
+    const res = await fetch(`${this.baseUrl}/admin/trips/${tripId}/payment-qr`, {
+      method: "POST",
+      headers,
+      body: form,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Upload failed");
+    return data;
+  }
+
+  async uploadPaymentProof(bookingId: string, file: File) {
+    const form = new FormData();
+    form.append("screenshot", file);
+    const headers: Record<string, string> = {};
+    if (this.token) headers["Authorization"] = `Bearer ${this.token}`;
+    const res = await fetch(`${this.baseUrl}/bookings/${bookingId}/payment-proof`, {
+      method: "POST",
+      headers,
+      body: form,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Upload failed");
+    return data;
+  }
+
   async getAllBookings(params?: Record<string, any>) {
     const queryString = params ? "?" + new URLSearchParams(params).toString() : "";
     return this.get(`/admin/bookings${queryString}`);
@@ -402,7 +440,12 @@ class ApiClient {
 
   // Site config (public)
   async getSiteConfig() {
-    return this.get<{ heroVideos: { url: string; publicId: string; label: string }[]; galleryImages: { url: string; publicId: string; label: string }[] }>("/site-config");
+    return this.get<{
+      heroVideos: { url: string; publicId: string; label: string }[];
+      galleryImages: { url: string; publicId: string; label: string }[];
+      paymentMode?: "razorpay" | "upi_qr";
+      upiId?: string;
+    }>("/site-config");
   }
 
   // Admin: update site config
@@ -410,6 +453,8 @@ class ApiClient {
     heroVideos?: { url: string; publicId: string; label: string }[];
     galleryImages?: { url: string; publicId: string; label: string }[];
     sessionSettings?: { sessionDurationDays: number; requireEmailVerification: boolean };
+    paymentMode?: "razorpay" | "upi_qr";
+    upiId?: string;
   }) {
     return this.put("/admin/site-config", data);
   }

@@ -659,6 +659,102 @@ function SecurityPanel() {
   );
 }
 
+// ─── Payment Settings panel ──────────────────────────────────────────────────
+function PaymentSettings() {
+  const [mode, setMode] = useState<"upi_qr" | "razorpay">("upi_qr");
+  const [upiId, setUpiId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    api.getSiteConfig().then((res: any) => {
+      const d = res.data;
+      if (d?.paymentMode) setMode(d.paymentMode);
+      if (d?.upiId) setUpiId(d.upiId);
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await api.updateSiteConfig({ paymentMode: mode, upiId: upiId.trim() });
+      toast.success("Payment settings saved.");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div className="flex justify-center py-12"><TravelLoader size="sm" /></div>;
+
+  return (
+    <div className="space-y-5">
+      {/* Mode toggle */}
+      <div className="rounded-3xl glass p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="grid h-10 w-10 place-items-center rounded-xl gradient-sunset">
+            <span className="text-lg">₹</span>
+          </div>
+          <div>
+            <h3 className="font-bold">Payment Mode</h3>
+            <p className="text-xs text-muted-foreground">Choose how customers pay for bookings</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {([
+            { value: "upi_qr", label: "UPI QR Code", desc: "Customer scans QR · zero transaction fees · manual verification" },
+            { value: "razorpay", label: "Razorpay", desc: "Instant online payment · automatic confirmation · fees apply" },
+          ] as const).map(({ value, label, desc }) => (
+            <button
+              key={value}
+              onClick={() => setMode(value)}
+              className={`flex flex-col items-start rounded-2xl border p-4 text-left transition ${
+                mode === value ? "border-primary bg-primary/10" : "border-border glass hover:border-primary/30"
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                {mode === value && <Check className="h-4 w-4 text-primary" />}
+                <span className="font-semibold text-sm">{label}</span>
+              </div>
+              <span className="text-xs text-muted-foreground leading-relaxed">{desc}</span>
+              {value === "upi_qr" && <span className="mt-2 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">Default · Recommended</span>}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* UPI ID */}
+      <div className="rounded-3xl glass p-6 space-y-4">
+        <div>
+          <h3 className="font-bold">UPI ID / VPA</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Your UPI address shown to customers when they pay</p>
+        </div>
+        <input
+          type="text"
+          value={upiId}
+          onChange={(e) => setUpiId(e.target.value)}
+          placeholder="yourname@upi  or  yourphone@bank"
+          className="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-2.5 text-sm font-mono outline-none transition focus:border-primary/50 focus:bg-white/10"
+        />
+        <p className="text-xs text-muted-foreground">Example: <span className="font-mono text-white/60">dharavujourney@okicici</span> · Customers can also use this to pay manually via any UPI app</p>
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          onClick={save}
+          disabled={saving}
+          className="flex items-center gap-2 rounded-full gradient-sunset px-6 py-3 text-sm font-semibold text-white shadow-glow transition hover:scale-[1.02] disabled:opacity-50"
+        >
+          {saving ? <TravelDots /> : <Save className="h-4 w-4" />}
+          Save Payment Settings
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Danger Zone panel (owner only) ─────────────────────────────────────────
 function DangerZone() {
   const [confirm, setConfirm] = useState("");
@@ -742,12 +838,12 @@ function DangerZone() {
 }
 
 // ─── Main AdminSettings component ────────────────────────────────────────────
-type SettingsTab = "media" | "newsletter" | "security" | "info" | "danger";
+type SettingsTab = "media" | "newsletter" | "security" | "payment" | "info" | "danger";
 
 export function AdminSettings() {
   const [tab, setTab] = useState<SettingsTab>("media");
   const { user } = useAuth();
-  const isOwner = user?.role === "owner";
+  const isAdminOrOwner = user?.role === "admin" || user?.role === "owner";
 
   return (
     <div className="space-y-6">
@@ -758,12 +854,12 @@ export function AdminSettings() {
 
       {/* Tab bar */}
       <div className="flex flex-wrap gap-2">
-        {([ ["media", "Media Library"], ["newsletter", "Newsletter"], ["security", "Security"], ["info", "Site Info"], ] as [SettingsTab, string][]).map(([key, label]) => (
+        {([ ["media", "Media Library"], ["newsletter", "Newsletter"], ["security", "Security"], ["payment", "Payment"], ["info", "Site Info"], ] as [SettingsTab, string][]).map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${tab === key ? "gradient-sunset text-white shadow-glow" : "glass hover:bg-white/10"}`}>
             {label}
           </button>
         ))}
-        {isOwner && (
+        {isAdminOrOwner && (
           <button
             onClick={() => setTab("danger")}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${tab === "danger" ? "bg-red-600/80 text-white" : "border border-red-500/30 text-red-400 hover:bg-red-500/10"}`}
@@ -778,7 +874,8 @@ export function AdminSettings() {
           {tab === "media" && <MediaLibrary />}
           {tab === "newsletter" && <NewsletterPanel />}
           {tab === "security" && <SecurityPanel />}
-          {tab === "danger" && isOwner && <DangerZone />}
+          {tab === "payment" && <PaymentSettings />}
+          {tab === "danger" && isAdminOrOwner && <DangerZone />}
           {tab === "info" && (
             <div className="rounded-3xl glass p-6 space-y-3 text-sm text-muted-foreground">
               <h3 className="text-lg font-bold text-foreground">Site & Contact Configuration</h3>

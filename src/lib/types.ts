@@ -32,6 +32,10 @@ export interface Trip {
     taxPercent?: number;
     childrenPricePercent?: number;
   };
+  paymentQR?: {
+    url: string;
+    publicId: string;
+  };
   images: {
     url: string;
     caption?: string;
@@ -94,6 +98,14 @@ export interface Booking {
     method: string;
     transactionId?: string;
     paidAt?: string;
+  };
+  paymentProof?: {
+    url: string;
+    publicId: string;
+    uploadedAt?: string;
+    verifiedAt?: string;
+    rejectedAt?: string;
+    rejectionNote?: string;
   };
   status: "pending" | "confirmed" | "cancelled" | "completed";
   specialRequests?: string;

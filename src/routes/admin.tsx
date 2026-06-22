@@ -9,19 +9,21 @@ import { AdminReviews } from "@/components/dashboard/AdminReviews";
 import { UserManagement } from "@/components/dashboard/UserManagement";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { ActivityLogs } from "@/components/dashboard/ActivityLogs";
+import { PendingPayments } from "@/components/dashboard/PendingPayments";
 import { Navbar } from "@/components/site/Navbar";
-import { LayoutDashboard, MapPin, CalendarCheck, MessageSquare, Star, Users, Settings, Activity } from "lucide-react";
+import { LayoutDashboard, MapPin, CalendarCheck, MessageSquare, Star, Users, Settings, Activity, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
-type Tab = "dashboard" | "trips" | "bookings" | "inquiries" | "reviews" | "users" | "settings" | "activity";
+type Tab = "dashboard" | "trips" | "bookings" | "payments" | "inquiries" | "reviews" | "users" | "activity" | "settings";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
   { id: "trips", label: "Trips", icon: <MapPin className="h-4 w-4" /> },
   { id: "bookings", label: "Bookings", icon: <CalendarCheck className="h-4 w-4" /> },
+  { id: "payments", label: "Payments", icon: <Wallet className="h-4 w-4" /> },
   { id: "inquiries", label: "Inquiries", icon: <MessageSquare className="h-4 w-4" /> },
   { id: "reviews", label: "Reviews", icon: <Star className="h-4 w-4" /> },
   { id: "users", label: "Users", icon: <Users className="h-4 w-4" /> },
@@ -72,6 +74,7 @@ function AdminPage() {
         {activeTab === "dashboard" && <OwnerDashboard onNavigate={(t) => setActiveTab(t as Tab)} />}
         {activeTab === "trips" && <AdminTripManagement />}
         {activeTab === "bookings" && <AdminBookings />}
+        {activeTab === "payments" && <PendingPayments />}
         {activeTab === "inquiries" && <AdminInquiries />}
         {activeTab === "reviews" && <AdminReviews />}
         {activeTab === "users" && <UserManagement />}
