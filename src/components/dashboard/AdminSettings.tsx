@@ -755,65 +755,116 @@ function PaymentSettings() {
   );
 }
 
-// ─── Danger Zone panel (owner only) ─────────────────────────────────────────
+// ─── Danger Zone panel ───────────────────────────────────────────────────────
+const FLUSH_OPTIONS = [
+  { key: "trips",     label: "Trips",      desc: "All trip listings" },
+  { key: "bookings",  label: "Bookings",   desc: "All bookings & payment records" },
+  { key: "reviews",   label: "Reviews",    desc: "All customer reviews" },
+  { key: "inquiries", label: "Inquiries",  desc: "All contact / custom trip inquiries" },
+  { key: "users",     label: "Users",      desc: "Regular users only · admin & owner kept" },
+] as const;
+
+type FlushKey = typeof FLUSH_OPTIONS[number]["key"];
+
 function DangerZone() {
+  const [selected, setSelected] = useState<Set<FlushKey>>(new Set());
   const [confirm, setConfirm] = useState("");
   const [running, setRunning] = useState(false);
-  const [result, setResult] = useState<{ trips: number; bookings: number; reviews: number } | null>(null);
+  const [result, setResult] = useState<Record<string, number> | null>(null);
 
-  const ready = confirm === "DELETE";
+  const toggle = (k: FlushKey) => setSelected((prev) => {
+    const next = new Set(prev);
+    next.has(k) ? next.delete(k) : next.add(k);
+    return next;
+  });
+
+  const toggleAll = () => {
+    if (selected.size === FLUSH_OPTIONS.length) setSelected(new Set());
+    else setSelected(new Set(FLUSH_OPTIONS.map((o) => o.key)));
+  };
+
+  const ready = confirm === "DELETE" && selected.size > 0;
 
   const handleClear = async () => {
     if (!ready) return;
     setRunning(true);
     try {
-      const res = await api.clearTestData() as any;
+      const res = await api.clearTestData([...selected]) as any;
       if (res.success) {
         setResult(res.deleted);
         setConfirm("");
-        toast.success("Test data cleared. Users and activity logs preserved.");
+        setSelected(new Set());
+        toast.success(`Flushed: ${[...selected].join(", ")}`);
       } else {
-        toast.error(res.message ?? "Failed to clear data");
+        toast.error(res.message ?? "Failed");
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to clear data");
+      toast.error(err instanceof Error ? err.message : "Failed");
     } finally {
       setRunning(false);
     }
   };
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-3xl border border-red-500/30 bg-red-500/5 p-6 space-y-4">
+    <div className="space-y-5">
+      <div className="rounded-3xl border border-red-500/30 bg-red-500/5 p-6 space-y-5">
         <div className="flex items-center gap-3">
           <div className="grid h-10 w-10 place-items-center rounded-xl bg-red-500/20">
             <AlertTriangle className="h-5 w-5 text-red-400" />
           </div>
           <div>
-            <h3 className="font-bold text-red-400">Clear Test Data</h3>
-            <p className="text-xs text-muted-foreground">Delete all trips, bookings, and reviews. Users and activity logs are kept.</p>
+            <h3 className="font-bold text-red-400">Danger Zone — Flush Data</h3>
+            <p className="text-xs text-muted-foreground">Permanently delete selected data. Activity logs are always kept.</p>
           </div>
         </div>
 
-        <div className="rounded-2xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-xs text-red-300 space-y-1">
-          <p><strong>This will permanently delete:</strong></p>
-          <ul className="ml-4 list-disc space-y-0.5">
-            <li>All trips (test and real)</li>
-            <li>All bookings and payment records</li>
-            <li>All reviews</li>
-          </ul>
-          <p className="mt-2 text-red-400/70">This action cannot be undone.</p>
+        {/* Selectable type chips */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Select what to delete</p>
+            <button onClick={toggleAll} className="text-xs text-red-400 hover:text-red-300 transition">
+              {selected.size === FLUSH_OPTIONS.length ? "Deselect all" : "Select all"}
+            </button>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {FLUSH_OPTIONS.map(({ key, label, desc }) => {
+              const on = selected.has(key);
+              return (
+                <button
+                  key={key}
+                  onClick={() => toggle(key)}
+                  className={`flex items-start gap-3 rounded-2xl border p-3 text-left transition ${
+                    on ? "border-red-500/50 bg-red-500/10" : "border-white/10 bg-white/5 hover:border-red-500/30"
+                  }`}
+                >
+                  <div className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border transition ${on ? "border-red-500 bg-red-500/20" : "border-white/20"}`}>
+                    {on && <Check className="h-3 w-3 text-red-400" />}
+                  </div>
+                  <div>
+                    <p className={`text-sm font-semibold ${on ? "text-red-300" : "text-foreground"}`}>{label}</p>
+                    <p className="text-xs text-muted-foreground">{desc}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
+        {/* Last result */}
         {result && (
-          <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 text-sm text-emerald-300">
-            Deleted: <strong>{result.trips} trips</strong> · <strong>{result.bookings} bookings</strong> · <strong>{result.reviews} reviews</strong>
+          <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 text-sm text-emerald-300 space-y-0.5">
+            <p className="font-semibold">Last flush result:</p>
+            {Object.entries(result).map(([k, v]) => (
+              <p key={k} className="text-xs">{k}: <strong>{v} deleted</strong></p>
+            ))}
           </div>
         )}
 
+        {/* Confirm input */}
         <div className="space-y-2">
           <label className="text-xs text-muted-foreground">
             Type <span className="font-mono font-bold text-red-400">DELETE</span> to confirm
+            {selected.size > 0 && <span className="ml-1 text-red-400/70">({[...selected].join(", ")})</span>}
           </label>
           <input
             type="text"
@@ -830,7 +881,7 @@ function DangerZone() {
           className="flex w-full items-center justify-center gap-2 rounded-full bg-red-600/80 px-6 py-3 text-sm font-bold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {running ? <TravelDots /> : <Trash2 className="h-4 w-4" />}
-          {running ? "Deleting…" : "Clear All Test Data"}
+          {running ? "Deleting…" : selected.size === 0 ? "Select items to delete" : `Flush ${[...selected].join(", ")}`}
         </button>
       </div>
     </div>

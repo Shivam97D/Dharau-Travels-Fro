@@ -268,8 +268,9 @@ class ApiClient {
     return this.get(`/admin/stats${qs}`);
   }
 
-  async clearTestData() {
-    return this.delete("/admin/clear-test-data");
+  async clearTestData(types?: string[]) {
+    const qs = types?.length ? `?types=${types.join(",")}` : "";
+    return this.delete(`/admin/clear-test-data${qs}`);
   }
 
   async getPendingPayments() {
