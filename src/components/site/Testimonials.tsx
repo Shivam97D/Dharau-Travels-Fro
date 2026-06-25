@@ -11,7 +11,8 @@ import api from "@/lib/api";
 interface Review {
   _id: string;
   user: { name: string; avatar?: string };
-  trip: { title: string; destination: string };
+  trip?: { title: string; destination: string } | null;
+  tripName?: string;
   rating: number;
   title: string;
   comment: string;
@@ -59,16 +60,115 @@ function ReviewCard({ r }: { r: Review }) {
               <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] text-green-600">verified</span>
             )}
           </div>
-          <div className="text-xs text-muted-foreground">{r.trip?.title || "Dharavu Journey"}</div>
+          <div className="text-xs text-muted-foreground">{r.trip?.title || r.tripName || "Dharavu Journey"}</div>
         </div>
       </figcaption>
     </motion.figure>
   );
 }
 
+function TripComboBox({
+  trips,
+  loadingTrips,
+  onSelect,
+}: {
+  trips: TripOption[];
+  loadingTrips: boolean;
+  onSelect: (value: { id: string; name: string } | { id: null; name: string }) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<string | null>(null); // trip id if from list
+  const ref = useRef<HTMLDivElement>(null);
+
+  const filtered = query.trim()
+    ? trips.filter((t) => t.title.toLowerCase().includes(query.toLowerCase()))
+    : trips;
+
+  const choose = (t: TripOption) => {
+    setQuery(t.title);
+    setSelected(t._id);
+    setOpen(false);
+    onSelect({ id: t._id, name: t.title });
+  };
+
+  const handleInput = (val: string) => {
+    setQuery(val);
+    setSelected(null);
+    setOpen(true);
+    onSelect({ id: null, name: val });
+  };
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => handleInput(e.target.value)}
+        onFocus={() => setOpen(true)}
+        placeholder="Search or type a trip name…"
+        className="w-full rounded-2xl border border-border bg-muted/40 px-4 py-2.5 pr-10 text-sm outline-none transition focus:border-primary focus:bg-card"
+        autoComplete="off"
+      />
+      <ChevronDown
+        className={`pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+      />
+      {/* indicator */}
+      {query.trim() && (
+        <p className="mt-1 text-xs text-muted-foreground">
+          {selected
+            ? <span className="text-emerald-500">✓ Trip selected from list</span>
+            : <span className="text-amber-500">Custom name — admin will confirm the trip</span>}
+        </p>
+      )}
+      <AnimatePresence>
+        {open && (
+          <motion.ul
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.12 }}
+            className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-border bg-card shadow-float"
+          >
+            {loadingTrips ? (
+              <li className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground">
+                <TravelDots /> Loading…
+              </li>
+            ) : filtered.length === 0 ? (
+              <li className="px-4 py-3 text-sm text-muted-foreground">
+                No matching trips — your typed name will be used
+              </li>
+            ) : (
+              filtered.map((t) => (
+                <li
+                  key={t._id}
+                  onMouseDown={() => choose(t)}
+                  className="cursor-pointer px-4 py-2.5 text-sm transition hover:bg-white/10"
+                >
+                  {t.title}
+                </li>
+              ))
+            )}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function WriteReviewModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: () => void }) {
   const [trips, setTrips] = useState<TripOption[]>([]);
-  const [trip, setTrip] = useState("");
+  const [tripId, setTripId] = useState<string | null>(null);
+  const [tripName, setTripName] = useState("");
   const [rating, setRating] = useState(5);
   const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
@@ -76,18 +176,28 @@ function WriteReviewModal({ onClose, onSubmit }: { onClose: () => void; onSubmit
   const [loadingTrips, setLoadingTrips] = useState(true);
 
   useEffect(() => {
-    api.getTrips({ limit: "50" })
+    api.getTrips({ limit: "100" })
       .then((res: any) => setTrips(res.data?.data ?? res.data ?? []))
       .catch(() => {})
       .finally(() => setLoadingTrips(false));
   }, []);
 
+  const handleSelect = (val: { id: string; name: string } | { id: null; name: string }) => {
+    setTripId(val.id);
+    setTripName(val.name);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!trip) { toast.error("Please select a trip"); return; }
+    if (!tripId && !tripName.trim()) { toast.error("Please select or type a trip name"); return; }
+    if (!title.trim()) { toast.error("Please add a review title"); return; }
+    if (!comment.trim()) { toast.error("Please write your experience"); return; }
     setLoading(true);
     try {
-      await api.createReview({ trip, rating, title, comment });
+      await api.createReview({
+        ...(tripId ? { trip: tripId } : { tripName: tripName.trim() }),
+        rating, title, comment,
+      });
       toast.success("Review submitted! It will appear after approval.");
       onSubmit();
     } catch (err: unknown) {
@@ -122,26 +232,7 @@ function WriteReviewModal({ onClose, onSubmit }: { onClose: () => void; onSubmit
           <form onSubmit={handleSubmit} className="mt-5 space-y-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium">Trip</label>
-              <div className="relative">
-                {loadingTrips ? (
-                  <div className="flex items-center gap-2 rounded-2xl bg-muted/40 px-4 py-2.5 text-sm text-muted-foreground">
-                    <TravelDots /> Loading trips…
-                  </div>
-                ) : (
-                  <select
-                    value={trip}
-                    onChange={(e) => setTrip(e.target.value)}
-                    required
-                    className="w-full appearance-none rounded-2xl border border-border bg-muted/40 px-4 py-2.5 text-sm outline-none transition focus:border-primary focus:bg-card"
-                  >
-                    <option value="">Select a trip…</option>
-                    {trips.map((t) => (
-                      <option key={t._id} value={t._id}>{t.title}</option>
-                    ))}
-                  </select>
-                )}
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              </div>
+              <TripComboBox trips={trips} loadingTrips={loadingTrips} onSelect={handleSelect} />
             </div>
 
             <div>
@@ -161,7 +252,6 @@ function WriteReviewModal({ onClose, onSubmit }: { onClose: () => void; onSubmit
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                required
                 maxLength={100}
                 placeholder="Sum it up in one line…"
                 className="w-full rounded-2xl border border-border bg-muted/40 px-4 py-2.5 text-sm outline-none transition focus:border-primary focus:bg-card"
@@ -173,7 +263,6 @@ function WriteReviewModal({ onClose, onSubmit }: { onClose: () => void; onSubmit
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                required
                 maxLength={1000}
                 rows={4}
                 placeholder="Tell future travelers what made this special…"
